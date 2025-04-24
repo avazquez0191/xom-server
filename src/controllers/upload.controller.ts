@@ -1,5 +1,5 @@
 import { type Request, type Response } from 'express';
-import { processUpload } from '../services/file-upload.service.ts';
+import { processUpload } from '../services/file-upload.service';
 
 export const uploadOrders = async (req: Request, res: Response) => {
     try {

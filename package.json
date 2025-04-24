@@ -1,10 +1,10 @@
 {
   "name": "xom-server",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "dev": "nodemon src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
   },
@@ -21,19 +21,27 @@
   "homepage": "https://github.com/avazquez0191/xom-server#readme",
   "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^5.1.0",
+    "typescript": "^5.8.3",
+    "@types/mongodb": "^4.0.6",
+    "@types/mongoose": "^5.11.96",
+    "cors": "^2.8.5",
+    "mongodb": "^6.16.0",
+    "mongoose": "^8.13.2",
     "multer": "^1.4.5-lts.2",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
+    "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.1",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.14.1",
     "@types/xlsx": "^0.0.35",
-    "nodemon": "^3.1.9",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "dotenv": "^16.5.0",
+    "eslint": "^9.25.1",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.5.3",
+    "ts-node": "^10.9.2"
   }
 }

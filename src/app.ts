@@ -1,7 +1,7 @@
 import express, { type Express } from 'express';
 import cors from 'cors';
 import multer from 'multer';
-import { uploadOrders } from './controllers/upload.controller.ts';
+import { uploadOrders } from './controllers/upload.controller';
 
 const app: Express = express();
 
