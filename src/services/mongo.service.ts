@@ -6,7 +6,6 @@ if (!config.mongoUser || !config.mongoPassword || !config.mongoHost || !config.m
 }
 
 const COLLECTION_NAME = 'orders';
-// const DB_NAME = config.mongoDB;
 const MONGO_URI = config.mongoURI;
 
 let client: MongoClient;
@@ -47,13 +46,13 @@ async function createIndexes() {
         { key: { "metadata.purchaseDate": -1 } },
         {
             key: {
-                "productName": "text",
-                "productNameByCustomer": "text",
+                "product.name": "text",
+                "product.nameByCustomer": "text",
                 "recipient.name": "text"
             },
             weights: {
-                productName: 3,
-                productNameByCustomer: 2
+                "product.name": 3,
+                "product.nameByCustomer": 2
             }
         }
     ]);
