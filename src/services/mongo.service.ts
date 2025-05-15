@@ -40,7 +40,18 @@ export async function connectDB() {
 
 async function createIndexes() {
     await ordersCollection.createIndexes([
-        { key: { orderId: 1 }, unique: true },
+        {
+            key: {
+                "orderId": 1,
+                "orderItemId": 1,
+                "recipient.name": 1,
+                "orderReferenceNumber": 1
+            },
+            unique: true,
+            partialFilterExpression: {
+                "orderReferenceNumber": { $exists: true, $ne: null }
+            }
+        },
         { key: { "recipient.phone": 1 } },
         { key: { "shipping.trackingNumber": 1 } },
         { key: { "metadata.purchaseDate": -1 } },

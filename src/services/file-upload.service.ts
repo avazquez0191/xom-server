@@ -2,17 +2,20 @@ import { type Request } from 'express';
 import { ObjectId } from 'mongodb';
 import { getOrdersCollection } from './mongo.service';
 import { parseOrderFile } from '../utils/file-utils';
-import Order from '../models/Order';
+import { generateBatchId } from '../utils/batch.util';
+import OrderBase from '../models/Order';
 
 export const processUpload = async (fileBuffer: Buffer) => {
     if (!fileBuffer) throw new Error('No file uploaded');
 
     try {
+        const batch = generateBatchId();
+
         // Parse the uploaded file
         const rawOrders = parseOrderFile(fileBuffer);
 
         // Map to our Order interface
-        const orders: Order[] = rawOrders.map((raw: any) => {
+        const orders: OrderBase[] = rawOrders.map((raw: any) => {
             // Convert empty strings to undefined for optional fields
             const toOptional = (value: string | number) => {
                 if (typeof value === 'string') {
@@ -57,10 +60,14 @@ export const processUpload = async (fileBuffer: Buffer) => {
                         postalCode: raw['ship postal code (Must be shipped to the following zip code.)'],
                         country: raw['ship country']
                     },
+                    label: {
+                        trackingNumber: toOptional(raw['tracking number']),
+                        trackingStatus: "",
+                        carrier: toOptional(raw['carrier']),
+                        cost: 0
+                    },
                     latestShippingTime: toDate(raw['latest shipping time']),
                     latestDeliveryTime: toDate(raw['latest delivery time']),
-                    trackingNumber: toOptional(raw['tracking number']),
-                    carrier: toOptional(raw['carrier'])
                 },
                 financial: {
                     basePrice: toNumber(raw['activity goods base price']),
@@ -68,9 +75,15 @@ export const processUpload = async (fileBuffer: Buffer) => {
                     settlementStatus: raw['order settlement status']
                 },
                 metadata: {
+                    platform: 'TEMU',
                     purchaseDate: toDate(raw['purchase date']),
                     iphoneSerial: toOptional(raw['iPhone serial number']),
                     requiresShipmentProof: raw['keep proof of shipment before delivery'] === 'YES'
+                },
+                batch: {
+                    id: batch.id,
+                    name: batch.name,
+                    uploadedAt: new Date()
                 },
                 createdAt: new Date(),
                 updatedAt: new Date()

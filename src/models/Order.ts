@@ -1,12 +1,13 @@
 import { ObjectId } from 'mongodb';
 
-export default interface Order {
+export default interface OrderBase {
   _id?: ObjectId;
   orderId: string;
   orderStatus: string;
   logisticsServiceSuggestion?: string;
   orderItemId: string;
   orderItemStatus: string;
+  orderReferenceNumber?: string;
   product: {
     name: string;
     nameByCustomer?: string;
@@ -35,10 +36,14 @@ export default interface Order {
       postalCode: string;
       country: string;
     };
+    label: {
+      trackingNumber?: string;
+      trackingStatus?: string;
+      carrier?: string;
+      cost?: number;
+    }
     latestShippingTime: Date;
     latestDeliveryTime: Date;
-    trackingNumber?: string;
-    carrier?: string;
   };
   financial: {
     basePrice: number;
@@ -49,6 +54,11 @@ export default interface Order {
     purchaseDate: Date;
     iphoneSerial?: string;
     requiresShipmentProof: boolean;
+  };
+  batch: {
+    id: string;
+    name: string;
+    uploadedAt: Date;
   };
   createdAt: Date;
   updatedAt: Date;

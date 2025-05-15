@@ -31,7 +31,7 @@ app.post('/api/upload', upload.single('file'), (req, res, next) => {
     uploadOrders(req, res).catch(next);
 });
 
-// Test route
+// Healthy test routes
 app.get('/api/health', (req, res) => {
     res.json({ status: 'Server is running' });
 });
