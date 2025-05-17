@@ -1,11 +1,13 @@
 import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 import { toOptional, toNumber, toDate } from '../../utils/converters';
+import { generateBatchId } from '../../utils/batch.util';
 
 export class TemuMapper {
     normalize(raw: Record<string, any>): TemuOrder {
+        const batch = generateBatchId();
+
         return {
-            platform: 'temu',
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],
             logisticsServiceSuggestion: toOptional(raw[TEMU_COLUMNS.logisticsServiceSuggestion[0]]),
@@ -44,9 +46,7 @@ export class TemuMapper {
                     trackingStatus: "",
                     carrier: toOptional(raw[TEMU_COLUMNS.shipping.carrier[0]]),
                     cost: 0
-                },
-                latestShippingTime: toDate(raw[TEMU_COLUMNS.shipping.latestShippingTime[0]]),
-                latestDeliveryTime: toDate(raw[TEMU_COLUMNS.shipping.latestDeliveryTime[0]]),
+                }
             },
             financial: {
                 basePrice: toNumber(raw[TEMU_COLUMNS.financial.basePrice[0]]),

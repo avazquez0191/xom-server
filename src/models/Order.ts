@@ -42,8 +42,8 @@ export default interface OrderBase {
       carrier?: string;
       cost?: number;
     }
-    latestShippingTime: Date;
-    latestDeliveryTime: Date;
+    latestShippingTime?: Date;
+    latestDeliveryTime?: Date;
   };
   financial: {
     basePrice: number;
@@ -51,6 +51,7 @@ export default interface OrderBase {
     settlementStatus: string;
   };
   metadata: {
+    platform: string;
     purchaseDate: Date;
     iphoneSerial?: string;
     requiresShipmentProof: boolean;

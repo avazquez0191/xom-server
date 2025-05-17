@@ -65,9 +65,7 @@ export const processUpload = async (fileBuffer: Buffer) => {
                         trackingStatus: "",
                         carrier: toOptional(raw['carrier']),
                         cost: 0
-                    },
-                    latestShippingTime: toDate(raw['latest shipping time']),
-                    latestDeliveryTime: toDate(raw['latest delivery time']),
+                    }
                 },
                 financial: {
                     basePrice: toNumber(raw['activity goods base price']),
