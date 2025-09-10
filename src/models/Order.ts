@@ -5,7 +5,6 @@ export default interface OrderBase {
   orderId: string;
   orderStatus: string;
   logisticsServiceSuggestion?: string;
-  orderItemId: string;
   orderItemStatus: string;
   orderReferenceNumber?: string;
   product: {
@@ -14,6 +13,7 @@ export default interface OrderBase {
     variation: string;
     skuId: string;
     contributionSku?: string;
+    orderItemId: string;
     quantityPurchased: number;
     quantityShipped: number;
     quantityToShip: number;
@@ -41,9 +41,11 @@ export default interface OrderBase {
       trackingStatus?: string;
       carrier?: string;
       cost?: number;
-    }
+      serviceType?: string;
+    };
     latestShippingTime?: Date;
     latestDeliveryTime?: Date;
+    keepProofOfShipment?: boolean;
   };
   financial: {
     basePrice: number;
@@ -52,9 +54,9 @@ export default interface OrderBase {
   };
   metadata: {
     platform: string;
+    fulfillmentMode: string;
     purchaseDate: Date;
     iphoneSerial?: string;
-    requiresShipmentProof: boolean;
   };
   batch: {
     id: string;

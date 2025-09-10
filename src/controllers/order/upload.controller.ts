@@ -1,5 +1,5 @@
 import { type Request, type Response } from 'express';
-import { processUpload } from '../services/file-upload.service';
+import { processOrderUpload } from '@services/order/upload.service';
 
 export const uploadOrders = async (req: Request, res: Response) => {
     try {
@@ -7,7 +7,7 @@ export const uploadOrders = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        const result = await processUpload(req.file.buffer);
+        const result = await processOrderUpload(req.file.buffer);
 
         res.status(200).json(result);
     } catch (error) {

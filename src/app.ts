@@ -1,53 +1,38 @@
-import express, { type Express } from 'express';
+import express, { type Express, Request, Response } from 'express';
 import cors from 'cors';
-import multer from 'multer';
-import { uploadOrders } from './controllers/upload.controller';
-import { getOrdersCollection } from './services/mongo.service';
+import morgan from 'morgan';
+import mainRouter from './routes';
 
 const app: Express = express();
 
 // Middleware
+app.use(morgan('combined'));
 app.use(cors({ origin: 'http://ui:5173' }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true }));
 
-// Multer config
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB
-    },
-    fileFilter: (req, file, cb) => {
-        const validMimeTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-            'text/csv', // .csv
-            'text/tab-separated-values' // .tsv
-        ];
-        cb(null, validMimeTypes.includes(file.mimetype));
-    }
-});
+// Routes (all handled by the router now)
+app.use('/api', mainRouter);
 
-// Routes
-app.post('/api/upload', upload.single('file'), (req, res, next) => {
-    uploadOrders(req, res).catch(next);
-});
-
-// Healthy test routes
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'Server is running' });
-});
-
-app.get('/api/db-health', async (req, res) => {
-    try {
-        const collection = getOrdersCollection();
-        await collection.findOne({});
-        res.json({ status: 'healthy', db: collection.dbName });
-    } catch (error) {
-        res.status(500).json({
-            status: 'unhealthy',
-            error: error instanceof Error ? error.message : 'DB Connection failed',
-            stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
+// 404 Handler
+app.use((req: Request, res: Response, next: any) => {
+    if (!req.route) { // If no route matched
+        res.status(404).json({
+            message: 'Route not found',
+            path: req.originalUrl
         });
+    } else {
+        next();
     }
+});
+
+// Error Handler
+app.use((error: any, req: Request, res: Response, next: any) => {
+    console.error('Error:', error);
+    res.status(500).json({
+        message: 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
 });
 
 export default app;

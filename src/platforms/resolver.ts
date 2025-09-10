@@ -6,7 +6,7 @@ type Platform = 'temu' | 'amazon' | 'ebay' | false;
 // Flatten & Normalize all possible Temu column names into a single array
 const FLATTENED_TEMU_HEADERS = flattenColumnNames(TEMU_COLUMNS).map(h => h.toLowerCase());
 
-export function detect(headers: string[]): Platform {
+export function detectPlatform(headers: string[]): Platform {
     if (!headers?.length) return false;
 
     // Normalize provided header set for comparison
@@ -39,8 +39,8 @@ function flattenColumnNames(columns: any): string[] {
     return result;
 }
 
-// Update getMapper()
-export function getMapper(platform: Platform) {
+// Update getPlatformMapper()
+export function getPlatformMapper(platform: Platform) {
     switch (platform) {
         case 'temu': return new (require('./temu/mapper').TemuMapper)();
         // ... other cases

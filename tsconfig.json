@@ -4,6 +4,16 @@
     "module": "CommonJS",
     "rootDir": "./src",
     "outDir": "./dist",
+    "baseUrl": "./src",
+    "paths": {
+      "@platforms/*": ["platforms/*"],
+      "@models/*": ["models/*"],
+      "@config/*": ["config/*"],
+      "@services/*": ["services/*"],
+      "@controllers/*": ["controllers/*"],
+      "@routes/*": ["routes/*"],
+      "@utils/*": ["utils/*"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

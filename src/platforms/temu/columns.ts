@@ -5,7 +5,6 @@ export const TEMU_COLUMNS = {
     orderId: ['order id'],
     orderStatus: ['order status'],
     logisticsServiceSuggestion: ['Logistics service suggestion'],
-    orderItemId: ['Order item ID'],
     orderItemStatus: ['order item status'],
     product: {
         name: ['product name'],
@@ -13,6 +12,7 @@ export const TEMU_COLUMNS = {
         variation: ['variation'],
         skuId: ['sku id'],
         contributionSku: ['contribution sku'],
+        orderItemId: ['Order item ID'],
         quantityPurchased: ['quantity purchased'],
         quantityShipped: ['quantity shipped'],
         quantityToShip: ['quantity to ship']
@@ -35,8 +35,13 @@ export const TEMU_COLUMNS = {
             postalCode: ['ship postal code (Must be shipped to the following zip code.)'],
             country: ['ship country']
         },
-        carrier: ['carrier'],
-        trackingNumber: ['tracking number']
+        label: {
+            trackingNumber: ['tracking number'],
+            carrier: ['carrier']
+        },
+        latestShippingTime: ['latest shipping time'],
+        latestDeliveryTime: ['latest delivery time'],
+        keepProofOfShipment: ['keep proof of shipment before delivery']
     },
     financial: {
         basePrice: ['activity goods base price'],
@@ -44,8 +49,8 @@ export const TEMU_COLUMNS = {
         settlementStatus: ['order settlement status']
     },
     metadata: {
+        fulfillmentMode: ['Fulfillment mode'],
         purchaseDate: ['purchase date'],
-        iphoneSerial: ['iPhone serial number'],
-        requiresShipmentProof: ['keep proof of shipment before delivery']
+        iphoneSerial: ['iPhone serial number']
     }
 } as const;

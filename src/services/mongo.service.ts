@@ -49,7 +49,7 @@ async function createIndexes() {
             },
             unique: true,
             partialFilterExpression: {
-                "orderReferenceNumber": { $exists: true, $ne: null }
+                "orderReferenceNumber": { $exists: true, $type: 'string' }
             }
         },
         { key: { "recipient.phone": 1 } },
