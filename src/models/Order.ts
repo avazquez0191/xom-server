@@ -3,25 +3,16 @@ import { ObjectId } from 'mongodb';
 export default interface OrderBase {
   _id?: ObjectId;
   orderId: string;
-  orderStatus: string;
-  logisticsServiceSuggestion?: string;
-  orderItemStatus: string;
+  orderStatus?: string;
   orderReferenceNumber?: string;
   product: {
     name: string;
-    nameByCustomer?: string;
     variation: string;
-    skuId: string;
-    contributionSku?: string;
-    orderItemId: string;
+    sku: string;
     quantityPurchased: number;
-    quantityShipped: number;
-    quantityToShip: number;
   };
   recipient: {
     name: string;
-    firstName?: string;
-    lastName?: string;
     phone: string;
     email: string;
   };
@@ -30,10 +21,9 @@ export default interface OrderBase {
       line1: string;
       line2?: string;
       line3?: string;
-      district?: string;
       city: string;
       state: string;
-      postalCode: string;
+      zip: string;
       country: string;
     };
     label: {
@@ -45,18 +35,14 @@ export default interface OrderBase {
     };
     latestShippingTime?: Date;
     latestDeliveryTime?: Date;
-    keepProofOfShipment?: boolean;
   };
   financial: {
-    basePrice: number;
-    basePriceTotal: number;
-    settlementStatus: string;
+    basePrice?: number;
+    totalPrice?: number;
   };
   metadata: {
     platform: string;
-    fulfillmentMode: string;
     purchaseDate: Date;
-    iphoneSerial?: string;
   };
   batch: {
     id: string;

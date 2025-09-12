@@ -4,7 +4,7 @@ import { uploadOrders } from '@controllers/order/upload.controller';
 
 const router = Router();
 
-// Multer config (moved from app.ts)
+// Multer configuration
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -12,7 +12,6 @@ const upload = multer({
     },
     fileFilter: (req, file, cb) => {
         const validMimeTypes = [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
             'text/csv', // .csv
             'text/tab-separated-values' // .tsv
         ];

@@ -1,5 +1,5 @@
 import { toOptional, toNumber, toDate } from '@utils/converters';
-import { generateBatchId } from '@utils/batch.util';
+import { generateBatchId } from '@utils/common.util';
 import { parseBufferFileToRawJSON } from '@utils/file-utils';
 import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
@@ -11,19 +11,18 @@ export class TemuMapper {
     }
     normalize(raw: Record<string, any>): TemuOrder {
         const batch = generateBatchId();
-        console.log('Mapping Temu order:', raw);
         return {
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],
             logisticsServiceSuggestion: toOptional(raw[TEMU_COLUMNS.logisticsServiceSuggestion[0]]),
-            orderItemStatus: raw[TEMU_COLUMNS.orderItemStatus[0]],
             product: {
                 name: raw[TEMU_COLUMNS.product.name[0]],
                 nameByCustomer: toOptional(raw[TEMU_COLUMNS.product.nameByCustomer[0]]),
                 variation: raw[TEMU_COLUMNS.product.variation[0]],
-                skuId: raw[TEMU_COLUMNS.product.skuId[0]],
+                sku: raw[TEMU_COLUMNS.product.sku[0]],
                 contributionSku: raw[TEMU_COLUMNS.product.contributionSku[0]],
                 orderItemId: raw[TEMU_COLUMNS.product.orderItemId[0]],
+                orderItemStatus: raw[TEMU_COLUMNS.product.orderItemStatus[0]],
                 quantityPurchased: toNumber(raw[TEMU_COLUMNS.product.quantityPurchased[0]]),
                 quantityShipped: toNumber(raw[TEMU_COLUMNS.product.quantityShipped[0]]),
                 quantityToShip: toNumber(raw[TEMU_COLUMNS.product.quantityToShip[0]])
@@ -43,14 +42,12 @@ export class TemuMapper {
                     district: toOptional(raw[TEMU_COLUMNS.shipping.address.district[0]]),
                     city: raw[TEMU_COLUMNS.shipping.address.city[0]],
                     state: raw[TEMU_COLUMNS.shipping.address.state[0]],
-                    postalCode: raw[TEMU_COLUMNS.shipping.address.postalCode[0]],
+                    zip: raw[TEMU_COLUMNS.shipping.address.zip[0]],
                     country: raw[TEMU_COLUMNS.shipping.address.country[0]]
                 },
                 label: {
                     trackingNumber: toOptional(raw[TEMU_COLUMNS.shipping.label.trackingNumber[0]]),
-                    trackingStatus: "",
                     carrier: toOptional(raw[TEMU_COLUMNS.shipping.label.carrier[0]]),
-                    cost: 0
                 },
                 latestShippingTime: toDate(raw[TEMU_COLUMNS.shipping.latestShippingTime[0]]),
                 latestDeliveryTime: toDate(raw[TEMU_COLUMNS.shipping.latestDeliveryTime[0]]),
@@ -58,7 +55,7 @@ export class TemuMapper {
             },
             financial: {
                 basePrice: toNumber(raw[TEMU_COLUMNS.financial.basePrice[0]]),
-                basePriceTotal: toNumber(raw[TEMU_COLUMNS.financial.basePriceTotal[0]]),
+                totalPrice: toNumber(raw[TEMU_COLUMNS.financial.totalPrice[0]]),
                 settlementStatus: raw[TEMU_COLUMNS.financial.settlementStatus[0]]
             },
             metadata: {
