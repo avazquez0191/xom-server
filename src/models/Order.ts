@@ -7,7 +7,7 @@ export default interface OrderBase {
   orderReferenceNumber?: string;
   product: {
     name: string;
-    variation: string;
+    variation?: string;
     sku: string;
     quantityPurchased: number;
   };
@@ -26,7 +26,7 @@ export default interface OrderBase {
       zip: string;
       country: string;
     };
-    label: {
+    label?: {
       trackingNumber?: string;
       trackingStatus?: string;
       carrier?: string;
@@ -36,7 +36,7 @@ export default interface OrderBase {
     latestShippingTime?: Date;
     latestDeliveryTime?: Date;
   };
-  financial: {
+  financial?: {
     basePrice?: number;
     totalPrice?: number;
   };

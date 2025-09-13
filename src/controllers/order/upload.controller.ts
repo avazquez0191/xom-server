@@ -9,8 +9,11 @@ export const uploadOrders = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
+        if (!req.body.platform) {
+            return res.status(400).json({ error: 'No platform selected' });
+        }
 
-        const result = await processOrderUpload(req.file.buffer, req.file.originalname);
+        const result = await processOrderUpload(req.file.buffer, req.body.platform);
         console.log('✅ File processed successfully:', result.orders.length, 'orders');
 
         // Generate and save PDF

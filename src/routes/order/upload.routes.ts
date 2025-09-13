@@ -13,7 +13,8 @@ const upload = multer({
     fileFilter: (req, file, cb) => {
         const validMimeTypes = [
             'text/csv', // .csv
-            'text/tab-separated-values' // .tsv
+            'text/tab-separated-values', // .tsv
+            'text/plain', // .txt
         ];
         cb(null, validMimeTypes.includes(file.mimetype));
     }

@@ -107,7 +107,7 @@ export class ShippingLabelService {
         doc.text(order.shipping.address.country, margin, cityStateY + 15);
         
         // Tracking info (if available)
-        if (order.shipping.label.trackingNumber) {
+        if (order.shipping.label?.trackingNumber) {
             doc.moveTo(margin, 120).lineTo(278, 120).stroke();
             
             doc.fontSize(9)

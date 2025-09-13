@@ -43,11 +43,9 @@ async function createIndexes() {
         {
             key: {
                 "orderId": 1,
-                "orderItemId": 1,
-                "recipient.name": 1,
                 "orderReferenceNumber": 1
             },
-            unique: true,
+            unique: false,
             partialFilterExpression: {
                 "orderReferenceNumber": { $exists: true, $type: 'string' }
             }
@@ -58,12 +56,10 @@ async function createIndexes() {
         {
             key: {
                 "product.name": "text",
-                "product.nameByCustomer": "text",
                 "recipient.name": "text"
             },
             weights: {
-                "product.name": 3,
-                "product.nameByCustomer": 2
+                "product.name": 3
             }
         }
     ]);

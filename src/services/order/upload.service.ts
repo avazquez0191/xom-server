@@ -1,8 +1,8 @@
 import { getOrdersCollection } from '@services/mongo.service';
-import { detectPlatformByFilename, getPlatformMapper } from '@platforms/resolver';
+import { detectPlatform, getPlatformMapper } from '@platforms/resolver';
 import OrderBase from '@models/Order';
 
-export const processOrderUpload = async (fileBuffer: Buffer, originalFilename: string): Promise<{
+export const processOrderUpload = async (fileBuffer: Buffer, filePlatform: string): Promise<{
     success: boolean;
     insertedCount: number;
     orders: OrderBase[];
@@ -10,10 +10,8 @@ export const processOrderUpload = async (fileBuffer: Buffer, originalFilename: s
     if (!fileBuffer) throw new Error('No file uploaded');
 
     try {
-        console.log('🔍 Detecting platform for file:', originalFilename);
-        
         // 1. Detect platform
-        const platform = detectPlatformByFilename(originalFilename);
+        const platform = detectPlatform(filePlatform);
         if (!platform) {
             throw new Error('Unsupported platform');
         }

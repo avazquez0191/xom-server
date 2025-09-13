@@ -1,12 +1,12 @@
 import { toOptional, toNumber, toDate } from '@utils/converters';
 import { generateBatchId } from '@utils/common.util';
-import { parseBufferFileToRawJSON } from '@utils/file-utils';
+import { parseTemuFile } from '@utils/file-utils';
 import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 
 export class TemuMapper {
     process(fileBuffer: Buffer): TemuOrder[] {
-        const rows = parseBufferFileToRawJSON(fileBuffer);
+        const rows = parseTemuFile(fileBuffer);
         return rows.map(row => this.normalize(row as Record<string, any>));
     }
     normalize(raw: Record<string, any>): TemuOrder {
