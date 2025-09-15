@@ -4,47 +4,62 @@ import { detectPlatform, getPlatformMapper } from '@platforms/resolver';
 import { generateBatchId } from '@utils/common.util';
 import OrderBase from '@models/order.model';
 
+interface FilePlatformPair {
+    file: Express.Multer.File;
+    platform: string;
+}
+
 export class OrderService {
-    static processOrderUpload = async (
-        fileBuffer: Buffer,
-        filePlatform: string
-    ): Promise<{
+    static async processOrderUpload(pairs: FilePlatformPair[]): Promise<{
         success: boolean;
         insertedCount: number;
         orders: OrderBase[];
-    }> => {
-        if (!fileBuffer) throw new Error('No file uploaded');
-
+    }> {
         try {
-            // 1. Detect platform
-            const platform = detectPlatform(filePlatform);
-            if (!platform) {
-                throw new Error('Unsupported platform');
-            }
-            console.log('🏷️ Platform detected:', platform);
-
-            // 2. Get appropriate mapper
-            const mapper = getPlatformMapper(platform);
-            if (!mapper) {
-                throw new Error(`No mapper found for platform: ${platform}`);
-            }
-
-            // 3. Process file with detected mapper
+            let totalInserted = 0;
+            let allOrders: OrderBase[] = [];
             const batch = generateBatchId();
-            const results: OrderBase[] = await mapper.process(fileBuffer, batch);
-            if (results.length === 0) {
-                throw new Error('No valid orders found in the file');
-            }
-            console.log('✅ Mapper processed', results.length, 'orders');
 
-            // 4. Insert into MongoDB (Mongoose way)
-            const insertedDocs = await OrderModel.insertMany(results, { ordered: false });
-            console.log('💾 Inserted', insertedDocs.length, 'orders into database');
+            for (const { file, platform } of pairs) {
+                console.log(`📁 Processing file: ${file.originalname} for platform: ${platform}`);
+
+                if (!file || !file.buffer) {
+                    throw new Error('No file uploaded');
+                }
+
+                // 1. Detect platform (fallback to provided)
+                const detectedPlatform = detectPlatform(platform);
+                if (!detectedPlatform) {
+                    throw new Error(`Unsupported platform: ${platform}`);
+                }
+                console.log('🏷️ Platform detected:', detectedPlatform);
+
+                // 2. Get appropriate mapper
+                const mapper = getPlatformMapper(detectedPlatform);
+                if (!mapper) {
+                    throw new Error(`No mapper found for platform: ${detectedPlatform}`);
+                }
+
+                // 3. Process file with detected mapper
+                const results: OrderBase[] = await mapper.process(file.buffer, batch);
+                if (results.length === 0) {
+                    console.warn(`⚠️ No valid orders found in file: ${file.originalname}`);
+                    continue;
+                }
+                console.log(`✅ Mapper processed ${results.length} orders from ${file.originalname}`);
+
+                // 4. Insert into MongoDB
+                const insertedDocs = await OrderModel.insertMany(results, { ordered: false });
+                console.log(`💾 Inserted ${insertedDocs.length} orders into database`);
+
+                totalInserted += insertedDocs.length;
+                allOrders = allOrders.concat(insertedDocs);
+            }
 
             return {
                 success: true,
-                insertedCount: insertedDocs.length,
-                orders: insertedDocs,
+                insertedCount: totalInserted,
+                orders: allOrders,
             };
         } catch (error) {
             console.error(

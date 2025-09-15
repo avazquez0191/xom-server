@@ -6,17 +6,33 @@ import { parsePagination } from '@utils/pagination';
 export class OrderController {
     static async importOrders(req: Request, res: Response) {
         try {
-            console.log('📤 Upload started - File:', req.file?.originalname);
-
-            if (!req.file) {
-                return res.status(400).json({ error: 'No file uploaded' });
-            }
-            if (!req.body.platform) {
-                return res.status(400).json({ error: 'No platform selected' });
+            const files = req.files as Express.Multer.File[];
+            let platforms: string[] = req.body.platforms;
+            // Normalize platforms to array (multer + formData sometimes sends as string if only one value)
+            if (!Array.isArray(platforms)) {
+                platforms = [platforms];
             }
 
-            const result = await OrderService.processOrderUpload(req.file.buffer, req.body.platform);
-            console.log('✅ File processed successfully:', result.orders.length, 'orders');
+            console.log('📤 Upload started - Files:', files.map(file => file.originalname));
+            console.log('📤 Platforms:', platforms);
+
+            if (!files || files.length === 0) {
+                return res.status(400).json({ message: 'No files uploaded' });
+            }
+            if (!platforms || platforms.length === 0) {
+                return res.status(400).json({ error: 'No platforms selected' });
+            }
+            if (files.length !== platforms.length) {
+                return res.status(400).json({ message: 'Files and platforms mismatch' });
+            }
+
+            const filePlatformPairs = files.map((file, index) => ({
+                file,
+                platform: platforms[index],
+            }));
+
+            const result = await OrderService.processOrderUpload(filePlatformPairs);
+            console.log('✅ Files processed successfully:', result.orders.length, 'orders');
 
             // Generate and save PDF
             const filename = await ShippingLabelService.generateAndSaveBulkLabels(result.orders);
@@ -27,8 +43,9 @@ export class OrderController {
                 success: true,
                 message: 'Orders processed successfully',
                 insertedCount: result.insertedCount,
+                orders: result.orders,
                 downloadUrl: `/api/order/download/labels/${filename}`,
-                filename: filename
+                // filename: filename
             });
 
         } catch (error) {

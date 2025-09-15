@@ -7,6 +7,7 @@ const router = Router();
 // Multer configuration
 const upload = multer({
     storage: multer.memoryStorage(),
+    // dest: 'uploads/',
     limits: {
         fileSize: 10 * 1024 * 1024 // 10MB
     },
@@ -21,7 +22,7 @@ const upload = multer({
 });
 
 // POST /api/upload
-router.post('/upload/', upload.single('file'), (req, res, next) => {
+router.post('/upload/', upload.array('files'), (req, res, next) => {
     OrderController.importOrders(req, res).catch(next);
 });
 
