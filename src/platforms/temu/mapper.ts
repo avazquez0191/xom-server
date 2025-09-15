@@ -1,16 +1,15 @@
 import { toOptional, toNumber, toDate } from '@utils/converters';
-import { generateBatchId } from '@utils/common.util';
-import { parseTemuFile } from '@utils/file-utils';
+import { parseTemuFile } from '@utils/fileUtils';
+import { BatchInfo } from '@models/common.model';
 import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 
 export class TemuMapper {
-    process(fileBuffer: Buffer): TemuOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo): TemuOrder[] {
         const rows = parseTemuFile(fileBuffer);
-        return rows.map(row => this.normalize(row as Record<string, any>));
+        return rows.map(row => this.normalize(row as Record<string, any>, batch));
     }
-    normalize(raw: Record<string, any>): TemuOrder {
-        const batch = generateBatchId();
+    normalize(raw: Record<string, any>, batch: BatchInfo): TemuOrder {
         return {
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],

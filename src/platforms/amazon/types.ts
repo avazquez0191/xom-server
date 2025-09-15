@@ -1,4 +1,4 @@
-import OrderBase from '@models/Order';
+import OrderBase from '@models/order.model';
 
 /*
     all AMAZON-specific columns

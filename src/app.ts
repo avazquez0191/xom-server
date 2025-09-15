@@ -1,7 +1,7 @@
 import express, { type Express, Request, Response } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
-import mainRouter from './routes';
+import routes from './routes';
 
 const app: Express = express();
 
@@ -12,7 +12,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Routes (all handled by the router now)
-app.use('/api', mainRouter);
+app.use('/api', routes);
 
 // 404 Handler
 app.use((req: Request, res: Response, next: any) => {

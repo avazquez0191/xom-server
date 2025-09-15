@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { uploadOrders } from '@controllers/order/upload.controller';
+import { OrderController } from '@controllers/order.controller';
 
 const router = Router();
 
@@ -21,8 +21,11 @@ const upload = multer({
 });
 
 // POST /api/upload
-router.post('/', upload.single('file'), (req, res, next) => {
-    uploadOrders(req, res).catch(next);
+router.post('/upload/', upload.single('file'), (req, res, next) => {
+    OrderController.importOrders(req, res).catch(next);
 });
+
+// GET /api/download/label/:filename
+router.get('/download/labels/:filename', OrderController.exportOrderLabels);
 
 export default router;

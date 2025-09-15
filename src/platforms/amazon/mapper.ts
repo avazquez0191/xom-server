@@ -1,18 +1,16 @@
 import { toOptional, toNumber, toDate } from '@utils/converters';
-import { generateBatchId } from '@utils/common.util';
-import { parseAmazonFile } from '@utils/file-utils';
+import { parseAmazonFile } from '@utils/fileUtils';
+import { BatchInfo } from '@models/common.model';
 import { AMAZON_COLUMNS } from './columns';
 import { AmazonOrder } from './types';
 
 export class AmazonMapper {
-    process(fileBuffer: Buffer): AmazonOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo): AmazonOrder[] {
         const rows = parseAmazonFile(fileBuffer);
-        return rows.map(row => this.normalize(row as Record<string, any>));
+        return rows.map(row => this.normalize(row as Record<string, any>, batch));
     }
 
-    normalize(raw: Record<string, any>): AmazonOrder {
-        const batch = generateBatchId();
-console.log('Normalizing Amazon order:', raw);
+    normalize(raw: Record<string, any>, batch: BatchInfo): AmazonOrder {
         return {
             orderId: raw[AMAZON_COLUMNS.orderId[0]],
             orderStatus: 'UNSHIPPED', // Default status
@@ -21,7 +19,7 @@ console.log('Normalizing Amazon order:', raw);
                 sku: raw[AMAZON_COLUMNS.product.sku[0]],
                 orderItemId: raw[AMAZON_COLUMNS.product.orderItemId[0]],
                 quantityPurchased: toNumber(raw[AMAZON_COLUMNS.product.quantityPurchased[0]]),
-                quantityShipped:  toNumber(raw[AMAZON_COLUMNS.product.quantityShipped[0]]),
+                quantityShipped: toNumber(raw[AMAZON_COLUMNS.product.quantityShipped[0]]),
                 quantityToShip: toNumber(raw[AMAZON_COLUMNS.product.quantityToShip[0]])
             },
             recipient: {

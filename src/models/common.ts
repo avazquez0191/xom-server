@@ -1,1 +1,0 @@
-export type Platform = 'temu' | 'ebay' | 'amazon' | false;

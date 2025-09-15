@@ -1,19 +1,21 @@
 import { Router } from 'express';
-import uploadRoutes from './order/upload.routes';
-import downloadRoutes from './order/download.routes';
-import healthRoutes from './health.routes';
+import healthRoute from './health.route';
+import orderRoute from './order.route';
+import batchRoute from './batch.route';
 
 const router = Router();
 
 // Mount routes
 
 // Order
-router.use('/order/upload', uploadRoutes);
-router.use('/order/download', downloadRoutes);
+router.use('/order', orderRoute);
+
+// Batch
+router.use('/batch', batchRoute);
 
 // Product
 
 // Health
-router.use('/health', healthRoutes);
+router.use('/health', healthRoute);
 
 export default router;

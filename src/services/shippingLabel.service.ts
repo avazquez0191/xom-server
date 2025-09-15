@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-import OrderBase from '@models/Order';
+import OrderBase from '@models/order.model';
 import { Response } from 'express';
 
 export class ShippingLabelService {
@@ -12,7 +12,7 @@ export class ShippingLabelService {
         });
         
         const filename = `shipping-labels-${Date.now()}.pdf`;
-        const filePath = path.join(__dirname, '../../public/labels', filename);
+        const filePath = path.join(__dirname, '../public/labels', filename);
         
         // Ensure storage directory exists
         const storageDir = path.dirname(filePath);
@@ -39,7 +39,7 @@ export class ShippingLabelService {
     }
 
     static serveSavedLabel(filename: string, res: Response): void {
-        const filePath = path.join(__dirname, '../../public/labels', filename);
+        const filePath = path.join(__dirname, '../public/labels', filename);
         
         if (!fs.existsSync(filePath)) {
             res.status(404).json({ error: 'File not found' });
@@ -58,7 +58,7 @@ export class ShippingLabelService {
 
     // Optional: Clean up old files
     static cleanupOldFiles(maxAgeHours: number = 24): void {
-        const storageDir = path.join(__dirname, '../../public/labels');
+        const storageDir = path.join(__dirname, '../public/labels');
         if (!fs.existsSync(storageDir)) return;
         
         const files = fs.readdirSync(storageDir);

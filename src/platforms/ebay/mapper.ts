@@ -1,17 +1,16 @@
 import { toOptional, toNumber, toDate } from '@utils/converters';
-import { generateBatchId } from '@utils/common.util';
-import { parseEbayFile } from '@utils/file-utils';
+import { parseEbayFile } from '@utils/fileUtils';
+import { BatchInfo } from '@models/common.model';
 import { EBAY_COLUMNS } from './columns';
 import { EbayOrder } from './types';
 
 export class EbayMapper {
-    process(fileBuffer: Buffer): EbayOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo): EbayOrder[] {
         const rows = parseEbayFile(fileBuffer);
-        return rows.map(row => this.normalize(row as Record<string, any>));
+        return rows.map(row => this.normalize(row as Record<string, any>, batch));
     }
 
-    normalize(raw: Record<string, any>): EbayOrder {
-        const batch = generateBatchId();
+    normalize(raw: Record<string, any>, batch: BatchInfo): EbayOrder {
         return {
             salesRecordNumber: raw[EBAY_COLUMNS.salesRecordNumber[0]],
             orderId: raw[EBAY_COLUMNS.orderId[0]],

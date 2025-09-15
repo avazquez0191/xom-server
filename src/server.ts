@@ -1,9 +1,9 @@
-import config from '@config/config';
 import { connectDB } from '@services/mongo.service';
+import config from '@config/config';
 import app from './app';
 
 // Initialize database before starting server
-async function startServer() {
+(async () => {
   try {
     await connectDB();
     console.log('✅ Database connected');
@@ -15,6 +15,4 @@ async function startServer() {
     console.error('❌ Failed to start application:', error);
     process.exit(1);
   }
-}
-
-startServer();
+})();

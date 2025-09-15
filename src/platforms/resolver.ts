@@ -1,7 +1,7 @@
 import { TEMU_COLUMNS } from './temu/columns';
 import { EBAY_COLUMNS } from './ebay/columns';
 import { AMAZON_COLUMNS } from './amazon/columns';
-import { Platform } from '@models/common';
+import { Platform } from '@models/common.model';
 
 // Precompute flattened headers for each platform
 const PLATFORM_HEADERS = {
