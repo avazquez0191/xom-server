@@ -48,6 +48,7 @@ export default interface OrderBase {
     id: string;
     name: string;
     uploadedAt: Date;
+    orderIndex: number;
   };
   createdAt: Date;
   updatedAt: Date;

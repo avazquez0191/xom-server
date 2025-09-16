@@ -40,7 +40,7 @@ export class OrderController {
 
             // Return download URL instead of streaming
             res.json({
-                success: true,
+                status: true,
                 message: 'Orders processed successfully',
                 insertedCount: result.insertedCount,
                 orders: result.orders,
@@ -75,10 +75,10 @@ export class OrderController {
             const { batchId } = req.params;
             const { page, limit } = parsePagination(req.query);
             const result = await OrderService.listOrdersByBatch(batchId, page, limit);
-            res.json({ ok: true, ...result });
+            res.json({ status: true, ...result });
         } catch (err) {
             console.error(err);
-            res.status(500).json({ ok: false, error: 'Failed to list orders for batch' });
+            res.status(500).json({ status: false, error: 'Failed to list orders for batch' });
         }
     }
 
@@ -87,10 +87,10 @@ export class OrderController {
             const { batchId, orderId } = req.params;
             const order = await OrderService.getOrder(batchId, orderId);
             // if (!order) return res.status(404).json({ ok: false, error: 'Order not found' });
-            res.json({ ok: true, data: order });
+            res.json({ status: true, data: order });
         } catch (err) {
             console.error(err);
-            res.status(500).json({ ok: false, error: 'Failed to fetch order' });
+            res.status(500).json({ status: false, error: 'Failed to fetch order' });
         }
     }
 }

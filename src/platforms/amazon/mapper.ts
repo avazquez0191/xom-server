@@ -5,12 +5,12 @@ import { AMAZON_COLUMNS } from './columns';
 import { AmazonOrder } from './types';
 
 export class AmazonMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo): AmazonOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number): AmazonOrder[] {
         const rows = parseAmazonFile(fileBuffer);
-        return rows.map(row => this.normalize(row as Record<string, any>, batch));
+        return rows.map((row, index) => this.normalize(row as Record<string, any>, batch, index + lastIndex));
     }
 
-    normalize(raw: Record<string, any>, batch: BatchInfo): AmazonOrder {
+    normalize(raw: Record<string, any>, batch: BatchInfo, index: number): AmazonOrder {
         return {
             orderId: raw[AMAZON_COLUMNS.orderId[0]],
             orderStatus: 'UNSHIPPED', // Default status
@@ -51,7 +51,8 @@ export class AmazonMapper {
             batch: {
                 id: batch.id,
                 name: batch.name,
-                uploadedAt: new Date()
+                uploadedAt: new Date(),
+                orderIndex: index
             },
             createdAt: new Date(),
             updatedAt: new Date()

@@ -44,7 +44,10 @@ export function buildOrdersByBatchPipeline(batchId: string, skip = 0, limit = 25
                 _id: "$orderId",
                 orderId: { $first: "$orderId" },
                 orderStatus: { $first: "$orderStatus" },
+                orderReferenceNumber: { $first: "$orderReferenceNumber" },
+                orderIndex: { $min: "$batch.orderIndex" },
                 recipient: { $first: "$recipient" },
+                shipping: { $first: "$shipping" },
                 purchaseDate: { $first: "$metadata.purchaseDate" },
                 platform: { $first: "$metadata.platform" },
                 items: {
@@ -60,7 +63,7 @@ export function buildOrdersByBatchPipeline(batchId: string, skip = 0, limit = 25
                 totalAmount: { $sum: "$financial.totalPrice" }
             }
         },
-        { $sort: { purchaseDate: -1 } },
+        { $sort: { orderIndex: 1 } },
         {
             $facet: {
                 metadata: [{ $count: "total" }],
@@ -68,4 +71,33 @@ export function buildOrdersByBatchPipeline(batchId: string, skip = 0, limit = 25
             }
         }
     ];
+}
+
+export function buildOrderDetailsPipeline(batchId: string, orderId: string): PipelineStage[] {
+    return [
+        { $match: { "batch.id": batchId, orderId } },
+        {
+            $group: {
+                _id: "$orderId",
+                orderId: { $first: "$orderId" },
+                orderStatus: { $first: "$orderStatus" },
+                orderReferenceNumber: { $first: "$orderReferenceNumber" },
+                recipient: { $first: "$recipient" },
+                shipping: { $first: "$shipping" },
+                purchaseDate: { $first: "$metadata.purchaseDate" },
+                platform: { $first: "$metadata.platform" },
+                items: {
+                    $push: {
+                        sku: "$product.sku",
+                        name: "$product.name",
+                        variation: "$product.variation",
+                        qty: "$product.quantityPurchased",
+                        price: "$financial.basePrice",
+                    }
+                },
+                totalQty: { $sum: "$product.quantityPurchased" },
+                totalAmount: { $sum: "$financial.totalPrice" }
+            }
+        }
+    ]
 }

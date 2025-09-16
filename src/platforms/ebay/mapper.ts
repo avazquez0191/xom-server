@@ -5,12 +5,12 @@ import { EBAY_COLUMNS } from './columns';
 import { EbayOrder } from './types';
 
 export class EbayMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo): EbayOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number): EbayOrder[] {
         const rows = parseEbayFile(fileBuffer);
-        return rows.map(row => this.normalize(row as Record<string, any>, batch));
+        return rows.map((row, index) => this.normalize(row as Record<string, any>, batch, index + lastIndex));
     }
 
-    normalize(raw: Record<string, any>, batch: BatchInfo): EbayOrder {
+    normalize(raw: Record<string, any>, batch: BatchInfo, index: number): EbayOrder {
         return {
             salesRecordNumber: raw[EBAY_COLUMNS.salesRecordNumber[0]],
             orderId: raw[EBAY_COLUMNS.orderId[0]],
@@ -52,7 +52,8 @@ export class EbayMapper {
             batch: {
                 id: batch.id,
                 name: batch.name,
-                uploadedAt: new Date()
+                uploadedAt: new Date(),
+                orderIndex: index
             },
             createdAt: new Date(),
             updatedAt: new Date()

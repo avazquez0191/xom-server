@@ -9,12 +9,14 @@ interface FilePlatformPair {
     platform: string;
 }
 
+interface ProcessOrderUploadResult {
+    success: boolean;
+    insertedCount: number;
+    orders: OrderBase[];
+};
+
 export class OrderService {
-    static async processOrderUpload(pairs: FilePlatformPair[]): Promise<{
-        success: boolean;
-        insertedCount: number;
-        orders: OrderBase[];
-    }> {
+    static async processOrderUpload(pairs: FilePlatformPair[]): Promise<ProcessOrderUploadResult> {
         try {
             let totalInserted = 0;
             let allOrders: OrderBase[] = [];
@@ -41,7 +43,7 @@ export class OrderService {
                 }
 
                 // 3. Process file with detected mapper
-                const results: OrderBase[] = await mapper.process(file.buffer, batch);
+                const results: OrderBase[] = await mapper.process(file.buffer, batch, totalInserted);
                 if (results.length === 0) {
                     console.warn(`⚠️ No valid orders found in file: ${file.originalname}`);
                     continue;
@@ -75,6 +77,7 @@ export class OrderService {
     }
 
     static async getOrder(batchId: string, orderId: string) {
+        console.log('🔍 Fetching order:', batchId, orderId);
         return OrderRepository.getOrderInBatch(batchId, orderId);
     }
 }

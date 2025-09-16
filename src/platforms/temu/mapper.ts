@@ -5,11 +5,11 @@ import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 
 export class TemuMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo): TemuOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number): TemuOrder[] {
         const rows = parseTemuFile(fileBuffer);
-        return rows.map(row => this.normalize(row as Record<string, any>, batch));
+        return rows.map((row, index) => this.normalize(row as Record<string, any>, batch, index + lastIndex));
     }
-    normalize(raw: Record<string, any>, batch: BatchInfo): TemuOrder {
+    normalize(raw: Record<string, any>, batch: BatchInfo, index: number): TemuOrder {
         return {
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],
@@ -66,7 +66,8 @@ export class TemuMapper {
             batch: {
                 id: batch.id,
                 name: batch.name,
-                uploadedAt: new Date()
+                uploadedAt: new Date(),
+                orderIndex: index
             },
             createdAt: new Date(),
             updatedAt: new Date()

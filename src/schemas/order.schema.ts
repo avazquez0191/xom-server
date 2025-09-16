@@ -53,6 +53,7 @@ const OrderSchema = new Schema<IOrder>({
         id: { type: String, required: true, index: true },
         name: String,
         uploadedAt: Date,
+        orderIndex: { type: Number, required: true, index: true }
     },
 }, { timestamps: true });
 
