@@ -1,14 +1,15 @@
-import OrderBase from '@models/order.model';
+import { OrderBase, OrderProduct } from '@models/order.model';
 
 /*
     all AMAZON-specific columns
 */
+export interface AmazonProduct extends OrderProduct {
+    orderItemId: string;
+    quantityShipped?: number;
+    quantityToShip?: number;
+}
 export interface AmazonOrder extends OrderBase {
-    product: OrderBase['product'] & {
-        orderItemId: string;
-        quantityShipped?: number;
-        quantityToShip?: number;
-    };
+    products: AmazonProduct[];
     shipping: OrderBase['shipping'] & {
         shipServiceLevel: string;
     };

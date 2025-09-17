@@ -1,18 +1,19 @@
-import OrderBase from '@models/order.model';
+import { OrderBase, OrderProduct } from '@models/order.model';
 
 /*
     all TEMU-specific columns
 */
+export interface TemuProduct extends OrderProduct {
+    nameByCustomer?: string;
+    contributionSku?: string;
+    orderItemId: string; // required
+    orderItemStatus?: string;
+    quantityShipped?: number;
+    quantityToShip?: number;
+}
 export interface TemuOrder extends OrderBase {
     logisticsServiceSuggestion?: string;
-    product: OrderBase['product'] & {
-        nameByCustomer?: string;
-        contributionSku?: string;
-        orderItemId: string;
-        orderItemStatus?: string;
-        quantityShipped?: number;
-        quantityToShip?: number;
-    };
+    products: TemuProduct[];
     recipient: OrderBase['recipient'] & {
         firstName?: string;
         lastName?: string;

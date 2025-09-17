@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-import OrderBase from '@models/order.model';
+import { OrderBase} from '@models/order.model';
 import { Response } from 'express';
 
 export class ShippingLabelService {

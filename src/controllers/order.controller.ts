@@ -1,17 +1,18 @@
 import { type Request, type Response } from 'express';
 import { OrderService } from '@services/order.service';
 import { ShippingLabelService } from '@services/shippingLabel.service';
-import { parsePagination } from '@utils/pagination';
+import { parsePagination } from '@utils/pagination.utils';
 
 export class OrderController {
     static async importOrders(req: Request, res: Response) {
         try {
             const files = req.files as Express.Multer.File[];
-            let platforms: string[] = req.body.platforms;
-            // Normalize platforms to array (multer + formData sometimes sends as string if only one value)
-            if (!Array.isArray(platforms)) {
-                platforms = [platforms];
-            }
+            const platforms = Array.isArray(req.body.platforms)
+                ? req.body.platforms
+                : [req.body.platforms].filter(Boolean);
+            const orderReferenceStart = req.body.orderReferenceStart
+                ? parseInt(req.body.orderReferenceStart, 10)
+                : undefined;
 
             console.log('📤 Upload started - Files:', files.map(file => file.originalname));
             console.log('📤 Platforms:', platforms);
@@ -31,7 +32,7 @@ export class OrderController {
                 platform: platforms[index],
             }));
 
-            const result = await OrderService.processOrderUpload(filePlatformPairs);
+            const result = await OrderService.processOrderUpload(filePlatformPairs, orderReferenceStart);
             console.log('✅ Files processed successfully:', result.orders.length, 'orders');
 
             // Generate and save PDF
@@ -44,8 +45,7 @@ export class OrderController {
                 message: 'Orders processed successfully',
                 insertedCount: result.insertedCount,
                 orders: result.orders,
-                downloadUrl: `/api/order/download/labels/${filename}`,
-                // filename: filename
+                downloadUrl: `/api/order/download/labels/${filename}`
             });
 
         } catch (error) {

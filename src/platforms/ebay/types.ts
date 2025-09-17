@@ -1,4 +1,4 @@
-import OrderBase from '@models/order.model';
+import { OrderBase } from '@models/order.model';
 
 /*
     all EBAY-specific columns

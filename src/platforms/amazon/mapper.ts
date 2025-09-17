@@ -1,27 +1,49 @@
-import { toOptional, toNumber, toDate } from '@utils/converters';
-import { parseAmazonFile } from '@utils/fileUtils';
+import { toOptional, toNumber, toDate } from '@utils/converters.utils';
+import { parseAmazonFile } from '@utils/file.utils';
 import { BatchInfo } from '@models/common.model';
 import { AMAZON_COLUMNS } from './columns';
 import { AmazonOrder } from './types';
 
 export class AmazonMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number): AmazonOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number, orderReferenceStart?: number): AmazonOrder[] {
         const rows = parseAmazonFile(fileBuffer);
-        return rows.map((row, index) => this.normalize(row as Record<string, any>, batch, index + lastIndex));
+
+        const normalizedRows = rows.map(row =>
+            this.normalize(row as Record<string, any>, batch)
+        );
+
+        const ordersMap = new Map<string, AmazonOrder>();
+        let incrementalIndex = lastIndex;
+
+        for (const row of normalizedRows) {
+            const existingOrder = ordersMap.get(row.orderId);
+
+            if (existingOrder) {
+                // Merge products
+                existingOrder.products = [...existingOrder.products, ...row.products];
+            } else {
+                row.batch.orderIndex = incrementalIndex;
+                row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
+                ordersMap.set(row.orderId, row);
+                incrementalIndex++;
+            }
+        }
+
+        return Array.from(ordersMap.values());
     }
 
-    normalize(raw: Record<string, any>, batch: BatchInfo, index: number): AmazonOrder {
+    normalize(raw: Record<string, any>, batch: BatchInfo): AmazonOrder {
         return {
             orderId: raw[AMAZON_COLUMNS.orderId[0]],
             orderStatus: 'UNSHIPPED', // Default status
-            product: {
+            products: [{
                 name: raw[AMAZON_COLUMNS.product.name[0]],
                 sku: raw[AMAZON_COLUMNS.product.sku[0]],
                 orderItemId: raw[AMAZON_COLUMNS.product.orderItemId[0]],
                 quantityPurchased: toNumber(raw[AMAZON_COLUMNS.product.quantityPurchased[0]]),
                 quantityShipped: toNumber(raw[AMAZON_COLUMNS.product.quantityShipped[0]]),
                 quantityToShip: toNumber(raw[AMAZON_COLUMNS.product.quantityToShip[0]])
-            },
+            }],
             recipient: {
                 name: raw[AMAZON_COLUMNS.recipient.name[0]] || '',
                 phone: raw[AMAZON_COLUMNS.recipient.phone[0]] || '',
@@ -51,8 +73,7 @@ export class AmazonMapper {
             batch: {
                 id: batch.id,
                 name: batch.name,
-                uploadedAt: new Date(),
-                orderIndex: index
+                uploadedAt: new Date()
             },
             createdAt: new Date(),
             updatedAt: new Date()

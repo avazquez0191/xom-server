@@ -1,8 +1,8 @@
 import { OrderModel } from '@schemas/order.schema';
 import { OrderRepository } from '@repositories/order.repository';
 import { detectPlatform, getPlatformMapper } from '@platforms/resolver';
-import { generateBatchId } from '@utils/common.util';
-import OrderBase from '@models/order.model';
+import { generateBatchId } from '@utils/common.utils';
+import { OrderBase } from '@models/order.model';
 
 interface FilePlatformPair {
     file: Express.Multer.File;
@@ -16,7 +16,7 @@ interface ProcessOrderUploadResult {
 };
 
 export class OrderService {
-    static async processOrderUpload(pairs: FilePlatformPair[]): Promise<ProcessOrderUploadResult> {
+    static async processOrderUpload(pairs: FilePlatformPair[], orderReferenceStart?: number): Promise<ProcessOrderUploadResult> {
         try {
             let totalInserted = 0;
             let allOrders: OrderBase[] = [];
@@ -43,7 +43,7 @@ export class OrderService {
                 }
 
                 // 3. Process file with detected mapper
-                const results: OrderBase[] = await mapper.process(file.buffer, batch, totalInserted);
+                const results: OrderBase[] = await mapper.process(file.buffer, batch, totalInserted, orderReferenceStart);
                 if (results.length === 0) {
                     console.warn(`⚠️ No valid orders found in file: ${file.originalname}`);
                     continue;

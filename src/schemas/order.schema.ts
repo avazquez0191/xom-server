@@ -1,21 +1,26 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { ObjectId } from 'mongodb';
-import OrderBase from '@models/order.model';
+import { OrderBase, OrderProduct } from '@models/order.model';
+
+export interface IOrderProduct extends OrderProduct { }
 
 export interface IOrder extends OrderBase, Document {
     _id: ObjectId;
+    products: OrderProduct[];
 }
+
+const ProductSchema = new Schema<OrderProduct>({
+    name: { type: String, required: true },
+    variation: { type: String },
+    sku: { type: String, required: true },
+    quantityPurchased: { type: Number, required: true },
+}, { _id: false });
 
 const OrderSchema = new Schema<IOrder>({
     orderId: { type: String, required: true, index: true },
     orderStatus: { type: String },
     orderReferenceNumber: { type: String },
-    product: {
-        name: String,
-        variation: String,
-        sku: String,
-        quantityPurchased: Number,
-    },
+    products: { type: [ProductSchema], required: true },
     recipient: {
         name: String,
         phone: String,
@@ -57,9 +62,10 @@ const OrderSchema = new Schema<IOrder>({
     },
 }, { timestamps: true });
 
+// Indexes
 OrderSchema.index({ 'batch.id': 1 });
 OrderSchema.index({ 'metadata.purchaseDate': -1 });
 OrderSchema.index({ 'metadata.platform': 1, 'metadata.purchaseDate': -1 });
-OrderSchema.index({ 'product.name': 'text', 'recipient.name': 'text' });
+OrderSchema.index({ 'products.name': 'text', 'recipient.name': 'text' });
 
 export const OrderModel = mongoose.model<IOrder>('Order', OrderSchema);

@@ -1,16 +1,11 @@
 import { ObjectId } from 'mongodb';
 
-export default interface OrderBase {
+export interface OrderBase {
   _id?: ObjectId;
   orderId: string;
   orderStatus?: string;
   orderReferenceNumber?: string;
-  product: {
-    name: string;
-    variation?: string;
-    sku: string;
-    quantityPurchased: number;
-  };
+  products: OrderProduct[];
   recipient: {
     name: string;
     phone: string;
@@ -48,8 +43,15 @@ export default interface OrderBase {
     id: string;
     name: string;
     uploadedAt: Date;
-    orderIndex: number;
+    orderIndex?: number;
   };
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface OrderProduct {
+  name: string;
+  variation?: string;
+  sku: string;
+  quantityPurchased: number;
 }

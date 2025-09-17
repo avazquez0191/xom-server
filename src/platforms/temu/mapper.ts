@@ -1,20 +1,42 @@
-import { toOptional, toNumber, toDate } from '@utils/converters';
-import { parseTemuFile } from '@utils/fileUtils';
+import { toOptional, toNumber, toDate } from '@utils/converters.utils';
+import { parseTemuFile } from '@utils/file.utils';
 import { BatchInfo } from '@models/common.model';
 import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 
 export class TemuMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number): TemuOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number, orderReferenceStart?: number): TemuOrder[] {
         const rows = parseTemuFile(fileBuffer);
-        return rows.map((row, index) => this.normalize(row as Record<string, any>, batch, index + lastIndex));
+
+        const normalizedRows = rows.map(row =>
+            this.normalize(row as Record<string, any>, batch)
+        );
+
+        const ordersMap = new Map<string, TemuOrder>();
+        let incrementalIndex = lastIndex;
+
+        for (const row of normalizedRows) {
+            const existingOrder = ordersMap.get(row.orderId);
+
+            if (existingOrder) {
+                // Merge products
+                existingOrder.products = [...existingOrder.products, ...row.products];
+            } else {
+                row.batch.orderIndex = incrementalIndex;
+                row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
+                ordersMap.set(row.orderId, row);
+                incrementalIndex++;
+            }
+        }
+
+        return Array.from(ordersMap.values());
     }
-    normalize(raw: Record<string, any>, batch: BatchInfo, index: number): TemuOrder {
+    normalize(raw: Record<string, any>, batch: BatchInfo): TemuOrder {
         return {
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],
             logisticsServiceSuggestion: toOptional(raw[TEMU_COLUMNS.logisticsServiceSuggestion[0]]),
-            product: {
+            products: [{
                 name: raw[TEMU_COLUMNS.product.name[0]],
                 nameByCustomer: toOptional(raw[TEMU_COLUMNS.product.nameByCustomer[0]]),
                 variation: raw[TEMU_COLUMNS.product.variation[0]],
@@ -25,7 +47,7 @@ export class TemuMapper {
                 quantityPurchased: toNumber(raw[TEMU_COLUMNS.product.quantityPurchased[0]]),
                 quantityShipped: toNumber(raw[TEMU_COLUMNS.product.quantityShipped[0]]),
                 quantityToShip: toNumber(raw[TEMU_COLUMNS.product.quantityToShip[0]])
-            },
+            }],
             recipient: {
                 name: raw[TEMU_COLUMNS.recipient.name[0]],
                 firstName: toOptional(raw[TEMU_COLUMNS.recipient.firstName[0]]),
@@ -66,8 +88,7 @@ export class TemuMapper {
             batch: {
                 id: batch.id,
                 name: batch.name,
-                uploadedAt: new Date(),
-                orderIndex: index
+                uploadedAt: new Date()
             },
             createdAt: new Date(),
             updatedAt: new Date()

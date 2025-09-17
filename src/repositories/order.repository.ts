@@ -1,6 +1,6 @@
 import { OrderModel } from '@schemas/order.schema';
 import { BatchAggregateResult, OrderAggregateResult } from '@models/aggregates.model';
-import { buildListBatchesPipeline, buildOrderDetailsPipeline, buildOrdersByBatchPipeline } from '@utils/pipelines';
+import { buildListBatchesPipeline, buildOrderDetailsPipeline, buildOrdersByBatchPipeline } from '@utils/pipelines.utils';
 
 export class OrderRepository {
     static async listBatches(filters: { startDate?: string | Date, endDate?: string | Date, platform?: string }) {

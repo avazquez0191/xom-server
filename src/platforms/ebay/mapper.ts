@@ -1,26 +1,48 @@
-import { toOptional, toNumber, toDate } from '@utils/converters';
-import { parseEbayFile } from '@utils/fileUtils';
+import { toOptional, toNumber, toDate } from '@utils/converters.utils';
+import { parseEbayFile } from '@utils/file.utils';
 import { BatchInfo } from '@models/common.model';
 import { EBAY_COLUMNS } from './columns';
 import { EbayOrder } from './types';
 
 export class EbayMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number): EbayOrder[] {
+    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number, orderReferenceStart?: number): EbayOrder[] {
         const rows = parseEbayFile(fileBuffer);
-        return rows.map((row, index) => this.normalize(row as Record<string, any>, batch, index + lastIndex));
+
+        const normalizedRows = rows.map(row =>
+            this.normalize(row as Record<string, any>, batch)
+        );
+
+        const ordersMap = new Map<string, EbayOrder>();
+        let incrementalIndex = lastIndex;
+
+        for (const row of normalizedRows) {
+            const existingOrder = ordersMap.get(row.orderId);
+
+            if (existingOrder) {
+                // Merge products
+                existingOrder.products = [...existingOrder.products, ...row.products];
+            } else {
+                row.batch.orderIndex = incrementalIndex;
+                row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
+                ordersMap.set(row.orderId, row);
+                incrementalIndex++;
+            }
+        }
+
+        return Array.from(ordersMap.values());
     }
 
-    normalize(raw: Record<string, any>, batch: BatchInfo, index: number): EbayOrder {
+    normalize(raw: Record<string, any>, batch: BatchInfo): EbayOrder {
         return {
             salesRecordNumber: raw[EBAY_COLUMNS.salesRecordNumber[0]],
             orderId: raw[EBAY_COLUMNS.orderId[0]],
             orderStatus: 'UNSHIPPED', // Default status
-            product: {
+            products: [{
                 name: raw[EBAY_COLUMNS.product.name[0]],
                 variation: raw[EBAY_COLUMNS.product.variation[0]] || '',
                 sku: raw[EBAY_COLUMNS.product.sku[0]],
                 quantityPurchased: toNumber(raw[EBAY_COLUMNS.product.quantityPurchased[0]])
-            },
+            }],
             recipient: {
                 name: raw[EBAY_COLUMNS.recipient.name[0]] || '',
                 phone: raw[EBAY_COLUMNS.recipient.phone[0]] || '',
@@ -52,8 +74,7 @@ export class EbayMapper {
             batch: {
                 id: batch.id,
                 name: batch.name,
-                uploadedAt: new Date(),
-                orderIndex: index
+                uploadedAt: new Date()
             },
             createdAt: new Date(),
             updatedAt: new Date()
