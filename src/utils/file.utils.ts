@@ -1,4 +1,5 @@
 import { parse } from 'csv-parse/sync';
+import multer from 'multer';
 import xlsx from 'xlsx';
 
 // General parser for Excel
@@ -32,30 +33,30 @@ export const parseTemuFile = (fileBuffer: Buffer): Record<string, any>[] => {
 export const parseEbayFile = (fileBuffer: Buffer): Record<string, any>[] => {
   const content = fileBuffer.toString('utf8');
   const lines = content.split('\n');
-  
+
   // Find the header row (skip initial empty lines)
-  const headerLineIndex = lines.findIndex(line => 
-    line.includes('Sales Record Number') && 
+  const headerLineIndex = lines.findIndex(line =>
+    line.includes('Sales Record Number') &&
     line.includes('Order Number')
   );
-  
+
   if (headerLineIndex === -1) {
     throw new Error('Invalid eBay file: No headers found');
   }
-  
+
   // Extract only the relevant part of the file (from headers onward)
   const relevantLines = lines.slice(headerLineIndex);
-  
+
   // Remove footer lines
-  const dataLines = relevantLines.filter(line => 
+  const dataLines = relevantLines.filter(line =>
     !line.includes('record(s) downloaded') &&
     !line.includes('Seller ID :') &&
     line.trim().length > 0
   );
-  
+
   // Join back into CSV content
   const csvContent = dataLines.join('\n');
-  
+
   try {
     const records = parse(csvContent, {
       columns: true,
@@ -65,12 +66,12 @@ export const parseEbayFile = (fileBuffer: Buffer): Record<string, any>[] => {
       relax_column_count: true,
       bom: true
     }) as Record<string, any>[];
-    
+
     // Filter out any remaining empty records
-    return records.filter(record => 
+    return records.filter(record =>
       record && record['Sales Record Number'] && record['Sales Record Number'].trim().length > 0
     );
-    
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`eBay CSV parsing failed: ${message}`);
@@ -96,6 +97,23 @@ export const parseAmazonFile = (fileBuffer: Buffer): Record<string, any>[] => {
     throw new Error(`amazon CSV parsing failed: ${message}`);
   }
 };
+
+// Multer configuration for file uploads
+export const fileUploadMulter = multer({
+  storage: multer.memoryStorage(),
+  // dest: 'uploads/',
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    const validMimeTypes = [
+      'text/csv', // .csv
+      'text/tab-separated-values', // .tsv
+      'text/plain', // .txt
+    ];
+    cb(null, validMimeTypes.includes(file.mimetype));
+  }
+});
 
 // UNUSED
 export const parseBufferFileToHeadersArray = (fileBuffer: Buffer): string[] => {

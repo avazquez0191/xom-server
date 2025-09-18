@@ -6,7 +6,7 @@ export interface IOrderProduct extends OrderProduct { }
 
 export interface IOrder extends OrderBase, Document {
     _id: ObjectId;
-    products: OrderProduct[];
+    batch: Schema.Types.ObjectId;
 }
 
 const ProductSchema = new Schema<OrderProduct>({
@@ -18,6 +18,7 @@ const ProductSchema = new Schema<OrderProduct>({
 
 const OrderSchema = new Schema<IOrder>({
     orderId: { type: String, required: true, index: true },
+    orderIndex: { type: Number, required: true, index: true },
     orderStatus: { type: String },
     orderReferenceNumber: { type: String },
     products: { type: [ProductSchema], required: true },
@@ -54,16 +55,11 @@ const OrderSchema = new Schema<IOrder>({
         platform: { type: String, index: true },
         purchaseDate: { type: Date, index: true },
     },
-    batch: {
-        id: { type: String, required: true, index: true },
-        name: String,
-        uploadedAt: Date,
-        orderIndex: { type: Number, required: true, index: true }
-    },
+    batch: { type: Schema.Types.ObjectId, ref: 'Batch', required: true, index: true }
 }, { timestamps: true });
 
 // Indexes
-OrderSchema.index({ 'batch.id': 1 });
+OrderSchema.index({ 'batch': 1 });
 OrderSchema.index({ 'metadata.purchaseDate': -1 });
 OrderSchema.index({ 'metadata.platform': 1, 'metadata.purchaseDate': -1 });
 OrderSchema.index({ 'products.name': 'text', 'recipient.name': 'text' });

@@ -5,11 +5,11 @@ import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 
 export class TemuMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number, orderReferenceStart?: number): TemuOrder[] {
+    process(fileBuffer: Buffer, lastIndex: number, orderReferenceStart?: number): TemuOrder[] {
         const rows = parseTemuFile(fileBuffer);
 
         const normalizedRows = rows.map(row =>
-            this.normalize(row as Record<string, any>, batch)
+            this.normalize(row as Record<string, any>)
         );
 
         const ordersMap = new Map<string, TemuOrder>();
@@ -22,7 +22,7 @@ export class TemuMapper {
                 // Merge products
                 existingOrder.products = [...existingOrder.products, ...row.products];
             } else {
-                row.batch.orderIndex = incrementalIndex;
+                row.orderIndex = incrementalIndex;
                 row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
                 ordersMap.set(row.orderId, row);
                 incrementalIndex++;
@@ -31,7 +31,7 @@ export class TemuMapper {
 
         return Array.from(ordersMap.values());
     }
-    normalize(raw: Record<string, any>, batch: BatchInfo): TemuOrder {
+    normalize(raw: Record<string, any>): TemuOrder {
         return {
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],
@@ -84,11 +84,6 @@ export class TemuMapper {
                 fulfillmentMode: raw[TEMU_COLUMNS.metadata.fulfillmentMode[0]],
                 purchaseDate: toDate(raw[TEMU_COLUMNS.metadata.purchaseDate[0]]),
                 iphoneSerial: toOptional(raw[TEMU_COLUMNS.metadata.iphoneSerial[0]])
-            },
-            batch: {
-                id: batch.id,
-                name: batch.name,
-                uploadedAt: new Date()
             },
             createdAt: new Date(),
             updatedAt: new Date()

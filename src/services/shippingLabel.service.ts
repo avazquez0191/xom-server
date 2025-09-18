@@ -10,8 +10,12 @@ export class ShippingLabelService {
             size: [288, 432],
             margins: { top: 0, left: 0, right: 0, bottom: 0 }
         });
+        // get the minimum and maximum order.orderReferenceNumber
+        const orderReferenceNumbers = orders.map(order => order.orderReferenceNumber ? +order.orderReferenceNumber : 0);
+        const minRef = Math.min(...orderReferenceNumbers);
+        const maxRef = Math.max(...orderReferenceNumbers);
         
-        const filename = `shipping-labels-${Date.now()}.pdf`;
+        const filename = `${minRef}-${maxRef} Labels.pdf`;
         const filePath = path.join(__dirname, '../../public/labels', filename);
         
         // Ensure storage directory exists

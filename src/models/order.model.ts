@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 export interface OrderBase {
   _id?: ObjectId;
   orderId: string;
+  orderIndex?: number;
   orderStatus?: string;
   orderReferenceNumber?: string;
   products: OrderProduct[];
@@ -38,12 +39,6 @@ export interface OrderBase {
   metadata: {
     platform: string;
     purchaseDate: Date;
-  };
-  batch: {
-    id: string;
-    name: string;
-    uploadedAt: Date;
-    orderIndex?: number;
   };
   createdAt: Date;
   updatedAt: Date;

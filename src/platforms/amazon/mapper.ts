@@ -5,11 +5,11 @@ import { AMAZON_COLUMNS } from './columns';
 import { AmazonOrder } from './types';
 
 export class AmazonMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number, orderReferenceStart?: number): AmazonOrder[] {
+    process(fileBuffer: Buffer, lastIndex: number, orderReferenceStart?: number): AmazonOrder[] {
         const rows = parseAmazonFile(fileBuffer);
 
         const normalizedRows = rows.map(row =>
-            this.normalize(row as Record<string, any>, batch)
+            this.normalize(row as Record<string, any>)
         );
 
         const ordersMap = new Map<string, AmazonOrder>();
@@ -22,7 +22,7 @@ export class AmazonMapper {
                 // Merge products
                 existingOrder.products = [...existingOrder.products, ...row.products];
             } else {
-                row.batch.orderIndex = incrementalIndex;
+                row.orderIndex = incrementalIndex;
                 row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
                 ordersMap.set(row.orderId, row);
                 incrementalIndex++;
@@ -32,7 +32,7 @@ export class AmazonMapper {
         return Array.from(ordersMap.values());
     }
 
-    normalize(raw: Record<string, any>, batch: BatchInfo): AmazonOrder {
+    normalize(raw: Record<string, any>): AmazonOrder {
         return {
             orderId: raw[AMAZON_COLUMNS.orderId[0]],
             orderStatus: 'UNSHIPPED', // Default status
@@ -69,11 +69,6 @@ export class AmazonMapper {
                 vergeOfCancellation: raw[AMAZON_COLUMNS.metadata.vergeOfCancellation[0]] === 'true',
                 vergeOfLateShipment: raw[AMAZON_COLUMNS.metadata.vergeOfLateShipment[0]] === 'true',
                 signatureConfirmationRecommended: raw[AMAZON_COLUMNS.metadata.signatureConfirmationRecommended[0]] === 'true',
-            },
-            batch: {
-                id: batch.id,
-                name: batch.name,
-                uploadedAt: new Date()
             },
             createdAt: new Date(),
             updatedAt: new Date()

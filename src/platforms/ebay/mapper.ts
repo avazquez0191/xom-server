@@ -5,11 +5,11 @@ import { EBAY_COLUMNS } from './columns';
 import { EbayOrder } from './types';
 
 export class EbayMapper {
-    process(fileBuffer: Buffer, batch: BatchInfo, lastIndex: number, orderReferenceStart?: number): EbayOrder[] {
+    process(fileBuffer: Buffer, lastIndex: number, orderReferenceStart?: number): EbayOrder[] {
         const rows = parseEbayFile(fileBuffer);
 
         const normalizedRows = rows.map(row =>
-            this.normalize(row as Record<string, any>, batch)
+            this.normalize(row as Record<string, any>)
         );
 
         const ordersMap = new Map<string, EbayOrder>();
@@ -22,7 +22,7 @@ export class EbayMapper {
                 // Merge products
                 existingOrder.products = [...existingOrder.products, ...row.products];
             } else {
-                row.batch.orderIndex = incrementalIndex;
+                row.orderIndex = incrementalIndex;
                 row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
                 ordersMap.set(row.orderId, row);
                 incrementalIndex++;
@@ -32,7 +32,7 @@ export class EbayMapper {
         return Array.from(ordersMap.values());
     }
 
-    normalize(raw: Record<string, any>, batch: BatchInfo): EbayOrder {
+    normalize(raw: Record<string, any>): EbayOrder {
         return {
             salesRecordNumber: raw[EBAY_COLUMNS.salesRecordNumber[0]],
             orderId: raw[EBAY_COLUMNS.orderId[0]],
@@ -70,11 +70,6 @@ export class EbayMapper {
                 platform: 'EBAY',
                 ebayFulfillmentProgram: raw[EBAY_COLUMNS.metadata.ebayFulfillmentProgram[0]] === 'YES',
                 purchaseDate: toDate(raw[EBAY_COLUMNS.metadata.purchaseDate[0]])
-            },
-            batch: {
-                id: batch.id,
-                name: batch.name,
-                uploadedAt: new Date()
             },
             createdAt: new Date(),
             updatedAt: new Date()
