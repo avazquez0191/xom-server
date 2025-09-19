@@ -13,5 +13,8 @@ router.get('/:batchId/labels/:filename', BatchController.exportOrderLabels); // 
 router.post('/orders', fileUploadMulter.array('files'), (req, res, next) => {
     BatchController.importOrders(req, res).catch(next);
 }); // POST /api/batch/orders
+router.post('/:batchId/orders/confirm', (req, res, next) => {
+    BatchController.shippingConfirmation(req, res).catch(next);
+}); // POST /api/batch/:batchId/orders/confirm
 
 export default router;

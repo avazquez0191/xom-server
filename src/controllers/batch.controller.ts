@@ -110,4 +110,25 @@ export class BatchController {
       res.status(500).json({ status: false, error: 'Failed to list orders for batch' });
     }
   }
+
+  static async shippingConfirmation(req: Request, res: Response) {
+    try {
+      const { batchId } = req.params;
+      const { orderConfirmation, courier, service } = req.body;
+
+      if (!Array.isArray(orderConfirmation) || orderConfirmation.length === 0) {
+        return res.status(400).json({ message: 'Confirmations array is required' });
+      }
+
+      const result = await BatchService.applyShippingConfirmations(batchId, orderConfirmation, courier, service);
+
+      return res.status(200).json({
+        message: 'Shipping confirmations applied successfully',
+        updatedCount: result.modifiedCount,
+      });
+    } catch (error: any) {
+      console.error('Error in shippingConfirmation:', error);
+      return res.status(500).json({ message: 'Internal Server Error', error: error.message });
+    }
+  }
 }

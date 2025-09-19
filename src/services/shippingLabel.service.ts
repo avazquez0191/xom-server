@@ -111,16 +111,16 @@ export class ShippingLabelService {
         doc.text(order.shipping.address.country, margin, cityStateY + 15);
         
         // Tracking info (if available)
-        if (order.shipping.label?.trackingNumber) {
-            doc.moveTo(margin, 120).lineTo(278, 120).stroke();
+        // if (order.shipping.label?.trackingNumber) {
+        //     doc.moveTo(margin, 120).lineTo(278, 120).stroke();
             
-            doc.fontSize(9)
-               .text(`Tracking: ${order.shipping.label.trackingNumber}`, margin, 130);
+        //     doc.fontSize(9)
+        //        .text(`Tracking: ${order.shipping.label.trackingNumber}`, margin, 130);
             
-            if (order.shipping.label.carrier) {
-                doc.text(`Carrier: ${order.shipping.label.carrier}`, margin, 145);
-            }
-        }
+        //     if (order.shipping.label.carrier) {
+        //         doc.text(`Carrier: ${order.shipping.label.carrier}`, margin, 145);
+        //     }
+        // }
         
         // Platform info footer
         doc.fontSize(7)

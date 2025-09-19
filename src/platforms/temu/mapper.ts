@@ -66,10 +66,10 @@ export class TemuMapper {
                     zip: raw[TEMU_COLUMNS.shipping.address.zip[0]],
                     country: raw[TEMU_COLUMNS.shipping.address.country[0]]
                 },
-                label: {
+                labels: [{
                     trackingNumber: toOptional(raw[TEMU_COLUMNS.shipping.label.trackingNumber[0]]),
                     carrier: toOptional(raw[TEMU_COLUMNS.shipping.label.carrier[0]]),
-                },
+                }],
                 latestShippingTime: toDate(raw[TEMU_COLUMNS.shipping.latestShippingTime[0]]),
                 latestDeliveryTime: toDate(raw[TEMU_COLUMNS.shipping.latestDeliveryTime[0]]),
                 keepProofOfShipment: raw[TEMU_COLUMNS.shipping.keepProofOfShipment[0]] === 'YES'

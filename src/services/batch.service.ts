@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { FilePlatformPair, ProcessOrderUploadResult } from '@models/common.model';
 import { OrderBase } from '@models/order.model';
 import { detectPlatform, getPlatformMapper } from '@platforms/resolver';
@@ -6,12 +7,25 @@ import { BatchModel } from '@schemas/batch.schema';
 import { OrderModel } from '@schemas/order.schema';
 import { generateBatchId } from '@utils/common.utils';
 
+interface ShippingConfirmation {
+  orderId: string;
+  trackingNumbers: string[];
+  cost: number;
+}
+
 export class BatchService {
   static async createBatch(platforms: string[], ordersData: any[]) {
-    const batchInfo = generateBatchId();
-
+    //get minimum and maximum orderReferenceNumber
+    const orderReferenceNumbers = ordersData.map(o => o.orderReferenceNumber).filter(n => n != null) as number[];
+    const minOrderReferenceNumber = Math.min(...orderReferenceNumbers);
+    const maxOrderReferenceNumber = Math.max(...orderReferenceNumbers);
+    let batchName = `Batch ${minOrderReferenceNumber}-${maxOrderReferenceNumber}`;
+    if (!isFinite(minOrderReferenceNumber) || !isFinite(maxOrderReferenceNumber)) {
+      batchName = `Batch 1-${ordersData.length}}`; // fallback name
+    }
+    
     // Step 1: Create batch
-    const batch = await BatchModel.create({ name: batchInfo.name, platforms, orders: [] });
+    const batch = await BatchModel.create({ name: batchName, platforms, orders: [] });
 
     // Step 2: Insert orders referencing batch
     const orders = await OrderModel.insertMany(
@@ -90,5 +104,40 @@ export class BatchService {
 
   static async listOrdersByBatch(batchId: string, page = 1, limit = 25) {
     return BatchRepository.getOrdersByBatch(batchId, page, limit);
+  }
+
+  static async applyShippingConfirmations(
+    batchId: string,
+    confirmations: ShippingConfirmation[],
+    carrier?: string,
+    service?: string
+  ) {
+    if (!Types.ObjectId.isValid(batchId)) {
+      throw new Error('Invalid batchId');
+    }
+
+    const bulkOps = confirmations.map((conf) => ({
+      updateOne: {
+        filter: { batch: new Types.ObjectId(batchId), orderId: conf.orderId },
+        update: {
+          $set: {
+            'orderStatus': 'SHIPPED',
+            'shipping.labels': conf.trackingNumbers.map(tn => ({
+              trackingNumber: tn,
+              carrier: carrier,
+              serviceType: service,
+              cost: conf.cost,
+            }))
+          },
+        },
+      },
+    }));
+
+    if (bulkOps.length === 0) {
+      return { modifiedCount: 0 };
+    }
+
+    const result = await OrderModel.bulkWrite(bulkOps, { ordered: false });
+    return { modifiedCount: result.modifiedCount };
   }
 }

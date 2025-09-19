@@ -57,10 +57,10 @@ export class EbayMapper {
                     zip: raw[EBAY_COLUMNS.shipping.address.zip[0]],
                     country: raw[EBAY_COLUMNS.shipping.address.country[0]]
                 },
-                label: {
+                labels: [{
                     trackingNumber: toOptional(raw[EBAY_COLUMNS.shipping.label.trackingNumber[0]]),
                     serviceType: toOptional(raw[EBAY_COLUMNS.shipping.label.serviceType[0]])
-                }
+                }]
             },
             financial: {
                 basePrice: toNumber(raw[EBAY_COLUMNS.financial.basePrice[0]]),

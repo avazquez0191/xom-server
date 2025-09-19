@@ -37,13 +37,13 @@ const OrderSchema = new Schema<IOrder>({
             zip: String,
             country: String,
         },
-        label: {
+        labels: [{
             trackingNumber: String,
             trackingStatus: String,
             carrier: String,
             cost: Number,
             serviceType: String,
-        },
+        }],
         latestShippingTime: Date,
         latestDeliveryTime: Date,
     },
