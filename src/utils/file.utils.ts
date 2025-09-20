@@ -1,6 +1,8 @@
 import { parse } from 'csv-parse/sync';
 import multer from 'multer';
 import xlsx from 'xlsx';
+import QRCode from "qrcode";
+import bwipjs from "bwip-js";
 
 // General parser for Excel
 export const parseBufferFileToRawJSON = (buffer: Buffer) => {
@@ -134,3 +136,33 @@ export const parseHeadersFromFile = (fileBuffer: Buffer, filename: string): stri
     return firstLine.split(delimiter).map(header => header.trim());
   }
 };
+
+/**
+ * Generate QR as base64 PNG string
+ */
+export async function generateQrBase64(data: string): Promise<string> {
+    const buffer = await QRCode.toBuffer(data, {
+        type: "png",
+        errorCorrectionLevel: "H",
+        margin: 1,
+        width: 200,
+    });
+    return `data:image/png;base64,${buffer.toString("base64")}`;
+}
+
+/**
+ * Generate Barcode as base64 PNG string
+ */
+export async function generateBarcodeBase64(data: string): Promise<string> {
+    const buffer = await bwipjs.toBuffer({
+        bcid: "code128",
+        text: data,
+        scale: 3,
+        height: 10,
+        includetext: false,
+        backgroundcolor: "FFFFFF",
+        paddingwidth: 0,
+        paddingheight: 0,
+    });
+    return `data:image/png;base64,${buffer.toString("base64")}`;
+}
