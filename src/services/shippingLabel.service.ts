@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import { generateQrBase64, generateBarcodeBase64 } from "@utils/file.utils";
-import { OrderBase } from '@models/order.model';
+import { OrderBase, ShippingLabel } from '@models/order.model';
 import { Response } from 'express';
 
 export class ShippingLabelService {
@@ -33,9 +33,15 @@ export class ShippingLabelService {
         doc.pipe(writeStream);
 
         // Generate labels sequentially
-        for (let index = 0; index < orders.length; index++) {
-            if (index > 0) doc.addPage();
-            await this.addLabelContent(doc, orders[index]);
+        let firstPage = true;
+        for (const order of orders) {
+            if (!order.shipping?.packages?.length) continue;
+
+            for (const pkg of order.shipping.packages) {
+                if (!firstPage) doc.addPage();
+                await this.addLabelContent(doc, order, pkg);
+                firstPage = false;
+            }
         }
 
         // Return promise that resolves when PDF is written
@@ -83,7 +89,11 @@ export class ShippingLabelService {
         });
     }
 
-    private static async addLabelContent(doc: PDFKit.PDFDocument, order: OrderBase): Promise<void> {
+    private static async addLabelContent(
+        doc: PDFKit.PDFDocument,
+        order: OrderBase,
+        pkg: { label: ShippingLabel; products: { sku: string; quantity: number }[] }
+    ): Promise<void> {
         const margin = 5;
         const marginBody = 10;
         const pageWidth = 288;
@@ -106,16 +116,23 @@ export class ShippingLabelService {
         // --- Line below QR/Barcode section ---
         doc.moveTo(margin, 80).lineTo(pageWidth - margin, 80).stroke();
 
-        // --- Product Info (small font) ---
-        if (order.products?.length) {
-            const productNames = order.products
-                .map(p => `**[${p.name} x${p.quantityPurchased}]  `)
-                .join(' ');
-            doc.fontSize(8).font("Helvetica").text(productNames, marginBody, 90);
+        // --- Product Info (from package only) ---
+        if (pkg.products?.length) {
+            const productLines = pkg.products
+            .filter(sp => sp.quantity > 0)
+            .map(sp => {
+                const original = order.products.find(p => p.sku === sp.sku);
+                const name = original ? original.name : sp.sku;
+                return `[${name} x${sp.quantity}]`;
+            })
+            .join("  ");
+            doc.fontSize(8).font("Helvetica").text(productLines, marginBody, 90, {
+            width: pageWidth - 2 * marginBody,
+            });
         }
 
-        // --- Shipping Address (more space + smaller font) ---
-        let y = 180; // more space before address
+        // --- Shipping Address ---
+        let y = 180;
         doc.fontSize(9).font("Helvetica").text("SHIP TO:", marginBody, y);
         y += 13;
 
@@ -143,10 +160,8 @@ export class ShippingLabelService {
         y += 11;
 
         // --- Footer ---
-        // Line above USPS Tracking
         doc.moveTo(margin, 260).lineTo(pageWidth - margin, 260).stroke();
 
-        // Centered USPS Tracking text
         doc.fontSize(12)
             .font("Helvetica-Bold")
             .text("USPS TRACKING #", 0, 270, {
@@ -154,16 +169,26 @@ export class ShippingLabelService {
                 width: pageWidth,
             });
 
-        // --- Bottom footer line ---
         const bottomLineY = pageHeight - 30;
         doc.moveTo(margin, bottomLineY).lineTo(pageWidth - margin, bottomLineY).stroke();
 
-        // --- Order Reference Number (bottom-left area) ---
+        // Order Reference Number (bottom-left)
         doc.fontSize(8)
             .font("Helvetica")
             .text(`Ref: ${order.orderReferenceNumber}`, marginBody, bottomLineY + 5, {
                 align: "left",
                 width: pageWidth / 2,
             });
+
+        // Tracking Number (bottom-right)
+        if (pkg.label?.trackingNumber) {
+            doc.fontSize(8)
+                .font("Helvetica")
+                .text(`Track: ${pkg.label.trackingNumber}`, pageWidth / 2, bottomLineY + 5, {
+                    align: "right",
+                    width: pageWidth / 2 - marginBody,
+                });
+        }
     }
+
 }

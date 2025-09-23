@@ -22,7 +22,7 @@ export interface OrderBase {
       zip: string;
       country: string;
     };
-    labels?: ShippingLabel[];
+    packages?: ShippingPackage[];
     latestShippingTime?: Date;
     latestDeliveryTime?: Date;
   };
@@ -45,10 +45,20 @@ export interface OrderProduct {
   quantityPurchased: number;
 }
 
+export interface ShippingPackage {
+  label: ShippingLabel;
+  products: ShippingProduct[];
+}
+
 export interface ShippingLabel {
   trackingNumber?: string;
   trackingStatus?: string;
   carrier?: string;
   cost?: number;
   serviceType?: string;
+}
+
+export interface ShippingProduct {
+  sku: string;
+  quantity: number;
 }

@@ -1,17 +1,11 @@
 import { Types } from 'mongoose';
-import { FilePlatformPair, ProcessOrderUploadResult } from '@models/common.model';
+import { FilePlatformPair, ListOptions, ProcessOrderUploadResult, ShippingConfirmation } from '@models/common.model';
 import { OrderBase } from '@models/order.model';
-import { detectPlatform, getPlatformMapper } from '@platforms/resolver';
+import { detectPlatform, getPlatformMapper } from '@platforms/mapper.factory';
 import { BatchRepository } from '@repositories/batch.repository';
 import { BatchModel } from '@schemas/batch.schema';
-import { OrderModel } from '@schemas/order.schema';
-import { generateBatchId } from '@utils/common.utils';
-
-interface ShippingConfirmation {
-  orderId: string;
-  trackingNumbers: string[];
-  cost: number;
-}
+import { IOrder, OrderModel } from '@schemas/order.schema';
+import { validatePackageAllocation } from '@utils/packageValidator';
 
 export class BatchService {
   static async createBatch(platforms: string[], ordersData: any[]) {
@@ -19,11 +13,13 @@ export class BatchService {
     const orderReferenceNumbers = ordersData.map(o => o.orderReferenceNumber).filter(n => n != null) as number[];
     const minOrderReferenceNumber = Math.min(...orderReferenceNumbers);
     const maxOrderReferenceNumber = Math.max(...orderReferenceNumbers);
-    let batchName = `Batch ${minOrderReferenceNumber}-${maxOrderReferenceNumber}`;
+    let batchName = minOrderReferenceNumber === maxOrderReferenceNumber ?
+      minOrderReferenceNumber : `${minOrderReferenceNumber}-${maxOrderReferenceNumber}`;
+    // Fallback if orderReferenceNumber is not valid
     if (!isFinite(minOrderReferenceNumber) || !isFinite(maxOrderReferenceNumber)) {
-      batchName = `Batch 1-${ordersData.length}}`; // fallback name
+      batchName = `Batch`; // fallback name
     }
-    
+
     // Step 1: Create batch
     const batch = await BatchModel.create({ name: batchName, platforms, orders: [] });
 
@@ -93,6 +89,10 @@ export class BatchService {
     }
   };
 
+  static async getBatch(batchId: string) {
+    return BatchRepository.getBatch(batchId);
+  }
+
   static async getOrder(batchId: string, orderId: string) {
     return BatchRepository.getOrderInBatch(batchId, orderId);
   }
@@ -102,8 +102,8 @@ export class BatchService {
     return BatchRepository.listBatches(filters);
   }
 
-  static async listOrdersByBatch(batchId: string, page = 1, limit = 25) {
-    return BatchRepository.getOrdersByBatch(batchId, page, limit);
+  static async listOrdersByBatch(batchId: string, opt: ListOptions = {}) {
+    return BatchRepository.getOrdersByBatch(batchId, opt);
   }
 
   static async applyShippingConfirmations(
@@ -139,5 +139,28 @@ export class BatchService {
 
     const result = await OrderModel.bulkWrite(bulkOps, { ordered: false });
     return { modifiedCount: result.modifiedCount };
+  }
+
+  static async assignPackages(batchId: string, orderId: string, packages: any[]) {
+    const order = await OrderModel.findOne({ batch: batchId, orderId });
+    if (!order) throw new Error(`Order ${orderId} not found in batch ${batchId}`);
+
+    // validate allocations
+    validatePackageAllocation(order.products, packages);
+
+    // update shipping.packages
+    order.shipping.packages = packages;
+    await order.save();
+
+    return order.toObject<IOrder>();
+  }
+
+  static async assignPackagesForBatch(batchId: string, orders: { orderId: string; packages: any[] }[]) {
+    const updatedOrders: IOrder[] = [];
+    for (const o of orders) {
+      const updatedOrder = await this.assignPackages(batchId, o.orderId, o.packages);
+      updatedOrders.push(updatedOrder);
+    }
+    return updatedOrders;
   }
 }

@@ -21,6 +21,23 @@ export class TemuMapper {
             if (existingOrder) {
                 // Merge products
                 existingOrder.products = [...existingOrder.products, ...row.products];
+                // Merge packages if tracking info exists
+                if (row.shipping.packages && row.shipping.packages.length > 0) {
+                    // skip if tracking number already exists
+                    const existingTrackingNumbers = new Set(
+                        (existingOrder.shipping.packages || []).map(
+                            pkg => pkg.label.trackingNumber
+                        )
+                    );
+                    row.shipping.packages = row.shipping.packages.filter(
+                        pkg => !existingTrackingNumbers.has(pkg.label.trackingNumber)
+                    );
+                    // Append new packages
+                    existingOrder.shipping.packages = [
+                        ...(existingOrder.shipping.packages || []),
+                        ...row.shipping.packages,
+                    ];
+                }
             } else {
                 row.orderIndex = incrementalIndex;
                 row.orderReferenceNumber = orderReferenceStart ? (orderReferenceStart + incrementalIndex).toString() : undefined;
@@ -32,6 +49,8 @@ export class TemuMapper {
         return Array.from(ordersMap.values());
     }
     normalize(raw: Record<string, any>): TemuOrder {
+        const trackingNumber = toOptional(raw[TEMU_COLUMNS.shipping.label.trackingNumber[0]]);
+        const carrier = toOptional(raw[TEMU_COLUMNS.shipping.label.carrier[0]]);
         return {
             orderId: raw[TEMU_COLUMNS.orderId[0]],
             orderStatus: raw[TEMU_COLUMNS.orderStatus[0]],
@@ -66,10 +85,17 @@ export class TemuMapper {
                     zip: raw[TEMU_COLUMNS.shipping.address.zip[0]],
                     country: raw[TEMU_COLUMNS.shipping.address.country[0]]
                 },
-                labels: [{
-                    trackingNumber: toOptional(raw[TEMU_COLUMNS.shipping.label.trackingNumber[0]]),
-                    carrier: toOptional(raw[TEMU_COLUMNS.shipping.label.carrier[0]]),
-                }],
+                packages: trackingNumber
+                    ? [
+                        {
+                            label: {
+                                trackingNumber,
+                                carrier,
+                            },
+                            products: [], // initially empty, to be filled when confirming shipping
+                        },
+                    ]
+                    : [],
                 latestShippingTime: toDate(raw[TEMU_COLUMNS.shipping.latestShippingTime[0]]),
                 latestDeliveryTime: toDate(raw[TEMU_COLUMNS.shipping.latestDeliveryTime[0]]),
                 keepProofOfShipment: raw[TEMU_COLUMNS.shipping.keepProofOfShipment[0]] === 'YES'

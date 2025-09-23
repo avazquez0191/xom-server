@@ -30,16 +30,37 @@ export function buildListBatchesPipeline(opts: {
     ];
 }
 
-export function buildOrdersByBatchPipeline(batchId: string, skip = 0, limit = 25): PipelineStage[] {
-    return [
-        { $match: { "batch": new Types.ObjectId(batchId) } },
+export function buildOrdersByBatchPipeline(
+    batchId: string,
+    { skip = 0, limit = 25, confirmedOnly = false, disablePagination = false }:
+        { skip?: number; limit?: number; confirmedOnly?: boolean; disablePagination?: boolean }
+): PipelineStage[] {
+
+    const match: any = { batch: new Types.ObjectId(batchId) };
+
+    if (confirmedOnly) {
+        match["orderStatus"] = "SHIPPED";
+    }
+
+    const baseStages: PipelineStage[] = [
+        { $match: Object.keys(match).length ? match : {} },
         { $sort: { orderIndex: 1 } },
+    ];
+
+    if (disablePagination) {
+        return [
+            ...baseStages
+        ];
+    }
+
+    return [
+        ...baseStages,
         {
             $facet: {
                 metadata: [{ $count: "total" }],
-                data: [{ $skip: skip }, { $limit: limit }]
-            }
-        }
+                data: [{ $skip: skip }, { $limit: limit }],
+            },
+        },
     ];
 }
 

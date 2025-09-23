@@ -18,3 +18,15 @@ export interface ProcessOrderUploadResult {
     orders: OrderBase[];
     batch: any
 };
+
+export interface ShippingConfirmation {
+    orderId: string;
+    trackingNumbers: string[];
+    cost: number;
+}
+
+export interface ListOptions { 
+    page?: number;
+    limit?: number;
+    disablePagination?: boolean;
+}
