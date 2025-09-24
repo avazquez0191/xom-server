@@ -29,6 +29,7 @@ export interface OrderBase {
   financial?: {
     basePrice?: number;
     totalPrice?: number;
+    transactionId?: string; // Ebay-specific
   };
   metadata: {
     platform: string;
@@ -43,6 +44,7 @@ export interface OrderProduct {
   variation?: string;
   sku: string;
   quantityPurchased: number;
+  orderItemId?: string; // Amazon-specific
 }
 
 export interface ShippingPackage {

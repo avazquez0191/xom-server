@@ -40,6 +40,9 @@ export class AmazonShippingConfirmationExporter implements Exporter {
                 const serviceType = pkg.label?.serviceType ?? '';
 
                 for (const pkgProduct of pkg.products) {
+                    // skip products with zero quantity
+                    if (pkgProduct.quantity <= 0) continue;
+                    
                     const product: AmazonProduct | undefined = order.products.find(
                         (p) => p.sku === pkgProduct.sku
                     );
