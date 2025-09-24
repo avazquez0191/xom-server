@@ -28,7 +28,8 @@ export const EBAY_COLUMNS = {
     },
     financial: {
         basePrice: ['Sold For'],
-        totalPrice: ['Total Price']
+        totalPrice: ['Total Price'],
+        transactionId: ['Transaction ID']
     },
     metadata: {
         purchaseDate: ['Sale Date'],

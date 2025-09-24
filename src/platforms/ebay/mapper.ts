@@ -96,6 +96,7 @@ export class EbayMapper {
             financial: {
                 basePrice: toNumber(raw[EBAY_COLUMNS.financial.basePrice[0]]),
                 totalPrice: toNumber(raw[EBAY_COLUMNS.financial.totalPrice[0]]),
+                transactionId: toOptional(raw[EBAY_COLUMNS.financial.transactionId[0]]),
             },
             metadata: {
                 platform: 'EBAY',

@@ -116,22 +116,36 @@ export class BatchService {
       throw new Error('Invalid batchId');
     }
 
-    const bulkOps = confirmations.map((conf) => ({
-      updateOne: {
-        filter: { batch: new Types.ObjectId(batchId), orderId: conf.orderId },
-        update: {
-          $set: {
-            'orderStatus': 'SHIPPED',
-            'shipping.labels': conf.trackingNumbers.map(tn => ({
-              trackingNumber: tn,
-              carrier: carrier,
-              serviceType: service,
-              cost: conf.cost,
-            }))
-          },
+    // Fetch orders first so we preserve existing products inside packages
+    const orderIds = confirmations.map(c => c.orderId);
+    const orders = await OrderModel.find({
+      batch: new Types.ObjectId(batchId),
+      orderId: { $in: orderIds }
+    }).lean<IOrder[]>();
+
+    const bulkOps = confirmations.map(conf => {
+      const order = orders.find(o => o.orderId === conf.orderId);
+      if (!order) return null;
+
+      // Build new packages array
+      const updatedPackages = conf.trackingNumbers.map((tn, index) => ({
+        label: {
+          trackingNumber: tn,
+          carrier,
+          serviceType: service,
+          cost: conf.cost,
         },
-      },
-    }));
+        // preserve products if exist, otherwise empty
+        products: order.shipping?.packages?.[index]?.products ?? []
+      }));
+
+      return {
+        updateOne: {
+          filter: { batch: new Types.ObjectId(batchId), orderId: conf.orderId },
+          update: { $set: { 'shipping.packages': updatedPackages } },
+        },
+      };
+    }).filter((op): op is NonNullable<typeof op> => op !== null);
 
     if (bulkOps.length === 0) {
       return { modifiedCount: 0 };

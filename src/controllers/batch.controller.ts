@@ -3,7 +3,6 @@ import { BatchService } from '@services/batch.service';
 import { parsePagination } from '@utils/pagination.utils';
 import { ShippingLabelService } from '@services/shippingLabel.service';
 import { ExportService } from '@services/export.service';
-import { IBatch } from '@schemas/batch.schema';
 import { ShippingConfirmation } from '@models/common.model';
 
 export class BatchController {
@@ -79,7 +78,7 @@ export class BatchController {
         return res.status(404).json({ error: 'Batch or orders not found' });
       }
 
-      // Serve existing label file
+      // TODO: Consider to use this option [Serve existing label file]
       // if (batch.labelFile) {
       //   ShippingLabelService.serveSavedLabel(batch.labelFile, res);
       // }
@@ -90,7 +89,7 @@ export class BatchController {
       // Update batch with label file
       batch.labelFile = filename;
       await batch.save();
-      
+
       ShippingLabelService.serveSavedLabel(batch.labelFile, res);
     } catch (error) {
       res.status(500).json({ error: 'Download failed' });
@@ -141,7 +140,7 @@ export class BatchController {
     }
   }
 
-  static async ConfirmShipping(req: Request, res: Response) {
+  static async confirmShipping(req: Request, res: Response) {
     try {
       const { batchId } = req.params;
       const { orderConfirmation, courier, service }: { orderConfirmation: ShippingConfirmation[], courier: string, service: string } = req.body;

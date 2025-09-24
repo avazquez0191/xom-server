@@ -11,7 +11,7 @@ export class ExportService {
         // Fetch confirmed orders
         const orders: OrderBase[] = await OrderModel.aggregate(
             buildOrdersByBatchPipeline(batchId, {
-                confirmedOnly: true,
+                confirmedOnly: false,
                 disablePagination: true,
             })
         );

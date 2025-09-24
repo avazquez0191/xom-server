@@ -5,6 +5,15 @@ import { generateQrBase64, generateBarcodeBase64 } from "@utils/file.utils";
 import { OrderBase, ShippingLabel } from '@models/order.model';
 import { Response } from 'express';
 
+interface ManualLabelData {
+    name: string;
+    address1: string;
+    address2?: string;
+    city: string;
+    state: string;
+    zip: string;
+}
+
 export class ShippingLabelService {
     static async generateAndSaveBulkLabels(orders: OrderBase[]): Promise<string> {
         const doc = new PDFDocument({
@@ -119,15 +128,15 @@ export class ShippingLabelService {
         // --- Product Info (from package only) ---
         if (pkg.products?.length) {
             const productLines = pkg.products
-            .filter(sp => sp.quantity > 0)
-            .map(sp => {
-                const original = order.products.find(p => p.sku === sp.sku);
-                const name = original ? original.name : sp.sku;
-                return `[${name} x${sp.quantity}]`;
-            })
-            .join("  ");
+                .filter(sp => sp.quantity > 0)
+                .map(sp => {
+                    const original = order.products.find(p => p.sku === sp.sku);
+                    const name = original ? original.name : sp.sku;
+                    return `[${name} x${sp.quantity}]`;
+                })
+                .join("  ");
             doc.fontSize(8).font("Helvetica").text(productLines, marginBody, 90, {
-            width: pageWidth - 2 * marginBody,
+                width: pageWidth - 2 * marginBody,
             });
         }
 
@@ -191,4 +200,70 @@ export class ShippingLabelService {
         }
     }
 
+    static async generate(data: ManualLabelData): Promise<string> {
+        const doc = new PDFDocument({
+            size: [288, 432],
+            margins: { top: 0, left: 0, right: 0, bottom: 0 },
+        });
+
+        const filename = `manual-${Date.now()}.pdf`;
+        const filePath = path.join(__dirname, "../../public/labels", filename);
+
+        if (!fs.existsSync(path.dirname(filePath))) {
+            fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        }
+
+        const stream = fs.createWriteStream(filePath);
+        doc.pipe(stream);
+
+        const margin = 10;
+        const pageWidth = 288;
+        const pageHeight = 432;
+
+        // --- Border ---
+        doc.rect(0, 0, pageWidth, pageHeight).stroke();
+
+        // --- USPS text instead of QR/Barcode ---
+        doc.fontSize(20).font("Helvetica-Bold").text("USPS", margin, 20, {
+            width: pageWidth - 2 * margin,
+            align: "left",
+        });
+
+        // --- Line ---
+        doc.moveTo(margin, 60).lineTo(pageWidth - margin, 60).stroke();
+
+        // --- Return Address placeholder ---
+        doc.fontSize(9).font("Helvetica").text("JML CONNECTION INC", margin + 5, 70);
+        doc.text("5680 NW 163RD ST", margin + 5, 80);
+        doc.text("MIAMI LAKES FL 33014-6134", margin + 5, 90);
+
+        // --- Ship To ---
+        let y = 180;
+        doc.fontSize(9).font("Helvetica-Bold").text("SHIP TO:", margin + 5, y);
+        y += 10;
+
+        doc.fontSize(11).font("Helvetica").text(data.name.toUpperCase(), margin + 15, y); y += 13;
+        if (data.address2) { doc.text(data.address2.toUpperCase(), margin + 15, y); y += 13; }
+        doc.text(data.address1.toUpperCase(), margin + 15, y); y += 13;
+        doc.text(`${data.city.toUpperCase()} ${data.state.toUpperCase()} ${data.zip}`, margin + 15, y);
+
+        // --- Footer ---
+        doc.moveTo(margin, 260).lineTo(pageWidth - margin, 260).stroke();
+
+        doc.fontSize(12)
+            .font("Helvetica-Bold")
+            .text("USPS TRACKING #", 0, 270, {
+                align: "center",
+                width: pageWidth,
+            });
+
+        const bottomLineY = pageHeight - 30;
+        doc.moveTo(margin, bottomLineY).lineTo(pageWidth - margin, bottomLineY).stroke();
+
+        return new Promise((resolve, reject) => {
+            stream.on("finish", () => resolve(filename));
+            stream.on("error", reject);
+            doc.end();
+        });
+    }
 }
