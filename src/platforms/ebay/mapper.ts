@@ -1,4 +1,4 @@
-import { toOptional, toNumber, toDate } from '@utils/converters.utils';
+import { toOptional, toNumber, toDate, getStateCode } from '@utils/converters.utils';
 import { parseEbayFile } from '@utils/file.utils';
 import { BatchInfo } from '@models/common.model';
 import { EBAY_COLUMNS } from './columns';
@@ -65,6 +65,8 @@ export class EbayMapper {
                     variation: raw[EBAY_COLUMNS.product.variation[0]] || '',
                     sku: raw[EBAY_COLUMNS.product.sku[0]],
                     quantityPurchased: toNumber(raw[EBAY_COLUMNS.product.quantityPurchased[0]]),
+                    basePrice: toNumber(raw[EBAY_COLUMNS.product.basePrice[0]]),
+                    totalPrice: toNumber(raw[EBAY_COLUMNS.product.totalPrice[0]]),
                 },
             ],
             recipient: {
@@ -77,7 +79,7 @@ export class EbayMapper {
                     line1: raw[EBAY_COLUMNS.shipping.address.line1[0]],
                     line2: toOptional(raw[EBAY_COLUMNS.shipping.address.line2[0]]),
                     city: raw[EBAY_COLUMNS.shipping.address.city[0]],
-                    state: raw[EBAY_COLUMNS.shipping.address.state[0]],
+                    state: getStateCode(raw[EBAY_COLUMNS.shipping.address.state[0]]),
                     zip: raw[EBAY_COLUMNS.shipping.address.zip[0]],
                     country: raw[EBAY_COLUMNS.shipping.address.country[0]],
                 },
@@ -94,9 +96,7 @@ export class EbayMapper {
                     : [],
             },
             financial: {
-                basePrice: toNumber(raw[EBAY_COLUMNS.financial.basePrice[0]]),
-                totalPrice: toNumber(raw[EBAY_COLUMNS.financial.totalPrice[0]]),
-                transactionId: toOptional(raw[EBAY_COLUMNS.financial.transactionId[0]]),
+                transactionId: toOptional(raw[EBAY_COLUMNS.financial.transactionId[0]])
             },
             metadata: {
                 platform: 'EBAY',

@@ -1,4 +1,4 @@
-import { toOptional, toNumber, toDate } from '@utils/converters.utils';
+import { toOptional, toNumber, toDate, getStateCode } from '@utils/converters.utils';
 import { parseAmazonFile } from '@utils/file.utils';
 import { BatchInfo } from '@models/common.model';
 import { AMAZON_COLUMNS } from './columns';
@@ -55,7 +55,7 @@ export class AmazonMapper {
                     line2: toOptional(raw[AMAZON_COLUMNS.shipping.address.line2[0]]),
                     line3: toOptional(raw[AMAZON_COLUMNS.shipping.address.line3[0]]),
                     city: raw[AMAZON_COLUMNS.shipping.address.city[0]],
-                    state: raw[AMAZON_COLUMNS.shipping.address.state[0]],
+                    state: getStateCode(raw[AMAZON_COLUMNS.shipping.address.state[0]]),
                     zip: raw[AMAZON_COLUMNS.shipping.address.zip[0]],
                     country: raw[AMAZON_COLUMNS.shipping.address.country[0]]
                 },

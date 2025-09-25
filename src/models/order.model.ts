@@ -27,8 +27,6 @@ export interface OrderBase {
     latestDeliveryTime?: Date;
   };
   financial?: {
-    basePrice?: number;
-    totalPrice?: number;
     transactionId?: string; // Ebay-specific
   };
   metadata: {
@@ -44,6 +42,8 @@ export interface OrderProduct {
   variation?: string;
   sku: string;
   quantityPurchased: number;
+  basePrice?: number;
+  totalPrice?: number;
   orderItemId?: string; // Amazon-specific
 }
 

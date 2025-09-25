@@ -12,6 +12,7 @@ router.get('/:batchId/labels/print', (req, res, next) => {
 }); // GET /api/batch/:batchId/labels/print
 router.get('/:batchId/labels/:filename', BatchController.exportOrderLabels); // GET /api/batch/:batchId/labels/:filename
 router.get('/:batchId/export/shipping-confirmation', BatchController.exportShippingConfirmations); // GET /api/batch/:batchId/export/shipping-confirmation
+router.get('/:batchId/export/accounting', BatchController.exportAccounting); // GET /api/batch/:batchId/export/accounting
 
 
 router.post('/orders', fileUploadMulter.array('files'), (req, res, next) => {

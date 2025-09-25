@@ -50,4 +50,47 @@ export class ExportService {
         // Finalize the archive (streams it to client)
         await archive.finalize();
     }
+    static async streamAccountingExports(batchId: string, res: Response): Promise<void> {
+        // Fetch confirmed orders
+        const orders: OrderBase[] = await OrderModel.aggregate(
+            buildOrdersByBatchPipeline(batchId, {
+                confirmedOnly: false, // TODO: Change to true if needed
+                disablePagination: true,
+            })
+        );
+
+        if (!orders || orders.length === 0) {
+            throw new Error('No confirmed orders found for this batch');
+        }
+
+        // Group by platform
+        const grouped: Record<string, any[]> = {};
+        for (const order of orders) {
+            if (!grouped[order.metadata.platform]) {
+                grouped[order.metadata.platform] = [];
+            }
+            grouped[order.metadata.platform].push(order);
+        }
+
+        // Create archive and pipe directly to response
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        archive.on('error', (err) => {
+            throw err;
+        });
+
+        archive.pipe(res);
+
+        // Append platform exports directly to archive
+        for (const [platform, platformOrders] of Object.entries(grouped)) {
+            const exporter = ExportFactory.getExporter(platform, 'accounting');
+            const stream = exporter.export(platformOrders);
+            const extension = exporter.getFileExtension();
+            const filename = `${platform}-accounting.${extension}`;
+
+            archive.append(stream, { name: filename });
+        }
+
+        // Finalize the archive (streams it to client)
+        await archive.finalize();
+    }
 }

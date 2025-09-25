@@ -17,6 +17,8 @@ const ProductSchema = new Schema<OrderProduct>(
         sku: { type: String, required: true },
         quantityPurchased: { type: Number, required: true },
         orderItemId: { type: String }, // Amazon-specific
+        basePrice: { type: Number },
+        totalPrice: { type: Number },
     },
     { _id: false }
 );
@@ -75,8 +77,6 @@ const OrderSchema = new Schema<IOrder>(
             latestDeliveryTime: Date,
         },
         financial: {
-            basePrice: Number,
-            totalPrice: Number,
             transactionId: String, // Ebay-specific
         },
         metadata: {

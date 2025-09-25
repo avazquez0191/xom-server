@@ -15,7 +15,9 @@ export const TEMU_COLUMNS = {
         orderItemStatus: ['order item status'],
         quantityPurchased: ['quantity purchased'],
         quantityShipped: ['quantity shipped'],
-        quantityToShip: ['quantity to ship']
+        quantityToShip: ['quantity to ship'],
+        basePrice: ['activity goods base price'],
+        totalPrice: ['base price total'],
     },
     recipient: {
         name: ['recipient name'],
@@ -44,8 +46,6 @@ export const TEMU_COLUMNS = {
         keepProofOfShipment: ['keep proof of shipment before delivery']
     },
     financial: {
-        basePrice: ['activity goods base price'],
-        totalPrice: ['base price total'],
         settlementStatus: ['order settlement status']
     },
     metadata: {

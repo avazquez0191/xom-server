@@ -1,6 +1,5 @@
-import { toOptional, toNumber, toDate } from '@utils/converters.utils';
+import { toOptional, toNumber, toDate, getStateCode } from '@utils/converters.utils';
 import { parseTemuFile } from '@utils/file.utils';
-import { BatchInfo } from '@models/common.model';
 import { TEMU_COLUMNS } from './columns';
 import { TemuOrder } from './types';
 
@@ -65,7 +64,9 @@ export class TemuMapper {
                 orderItemStatus: raw[TEMU_COLUMNS.product.orderItemStatus[0]],
                 quantityPurchased: toNumber(raw[TEMU_COLUMNS.product.quantityPurchased[0]]),
                 quantityShipped: toNumber(raw[TEMU_COLUMNS.product.quantityShipped[0]]),
-                quantityToShip: toNumber(raw[TEMU_COLUMNS.product.quantityToShip[0]])
+                quantityToShip: toNumber(raw[TEMU_COLUMNS.product.quantityToShip[0]]),
+                basePrice: toNumber(raw[TEMU_COLUMNS.product.basePrice[0]]),
+                totalPrice: toNumber(raw[TEMU_COLUMNS.product.totalPrice[0]]),
             }],
             recipient: {
                 name: raw[TEMU_COLUMNS.recipient.name[0]],
@@ -81,7 +82,7 @@ export class TemuMapper {
                     line3: toOptional(raw[TEMU_COLUMNS.shipping.address.line3[0]]),
                     district: toOptional(raw[TEMU_COLUMNS.shipping.address.district[0]]),
                     city: raw[TEMU_COLUMNS.shipping.address.city[0]],
-                    state: raw[TEMU_COLUMNS.shipping.address.state[0]],
+                    state: getStateCode(raw[TEMU_COLUMNS.shipping.address.state[0]]),
                     zip: raw[TEMU_COLUMNS.shipping.address.zip[0]],
                     country: raw[TEMU_COLUMNS.shipping.address.country[0]]
                 },
@@ -101,8 +102,6 @@ export class TemuMapper {
                 keepProofOfShipment: raw[TEMU_COLUMNS.shipping.keepProofOfShipment[0]] === 'YES'
             },
             financial: {
-                basePrice: toNumber(raw[TEMU_COLUMNS.financial.basePrice[0]]),
-                totalPrice: toNumber(raw[TEMU_COLUMNS.financial.totalPrice[0]]),
                 settlementStatus: raw[TEMU_COLUMNS.financial.settlementStatus[0]]
             },
             metadata: {

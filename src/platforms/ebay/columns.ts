@@ -5,7 +5,9 @@ export const EBAY_COLUMNS = {
         name: ['Item Title'],
         variation: ['Variation Details'],
         sku: ['Item Number'],
-        quantityPurchased: ['Quantity']
+        quantityPurchased: ['Quantity'],
+        basePrice: ['Sold For'],
+        totalPrice: ['Total Price']
     },
     recipient: {
         name: ['Ship To Name'],
@@ -27,8 +29,6 @@ export const EBAY_COLUMNS = {
         }
     },
     financial: {
-        basePrice: ['Sold For'],
-        totalPrice: ['Total Price'],
         transactionId: ['Transaction ID']
     },
     metadata: {

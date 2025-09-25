@@ -181,6 +181,26 @@ export class BatchController {
     }
   }
 
+  static async exportAccounting(req: Request, res: Response) {
+    try {
+      const { batchId } = req.params;
+
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="accounting-batch-${batchId}.zip"`
+      );
+      res.setHeader('Content-Type', 'application/zip');
+
+      // Hand streaming responsibility to service
+      await ExportService.streamAccountingExports(batchId, res);
+    } catch (err) {
+      console.error(err);
+      res
+        .status(500)
+        .json({ status: false, error: 'Failed to export accounting data' });
+    }
+  }
+
 
   static async assignPackages(req: Request, res: Response) {
     try {
