@@ -105,11 +105,11 @@ export class ShippingLabelService {
     ): Promise<void> {
         const margin = 5;
         const marginBody = 10;
-        const pageWidth = 288;
-        const pageHeight = 432;
+        const pageWidth = 280;
+        const pageHeight = 425;
 
         // --- Border lines (edges of label) ---
-        doc.rect(0, 0, pageWidth, pageHeight).stroke();
+        doc.rect(2, 2, pageWidth, pageHeight).stroke();
 
         // --- QR Code (left) ---
         const qrBase64 = await generateQrBase64(order.orderId);
@@ -117,31 +117,57 @@ export class ShippingLabelService {
 
         // --- Barcode (right) ---
         const barcodeBase64 = await generateBarcodeBase64(order.orderId);
-        doc.image(barcodeBase64, 70, margin, { width: 210, height: 50 });
+        doc.image(barcodeBase64, 65, margin, { width: 210, height: 50 });
 
         // --- Order ID label ---
-        doc.fontSize(8).font("Helvetica").text(`Order ID: ${order.orderId}`, 80, 65);
+        doc.fontSize(8).font("Helvetica").text(`Order ID: ${order.orderId}`, 80, 60);
 
         // --- Line below QR/Barcode section ---
-        doc.moveTo(margin, 80).lineTo(pageWidth - margin, 80).stroke();
+        doc.moveTo(5, 70).lineTo(pageWidth, 70).stroke();
 
         // --- Product Info (from package only) ---
         if (pkg.products?.length) {
-            const productLines = pkg.products
+            const keep = 30; // Fixed number of characters to keep at start and end
+            const ellipsis = '...';
+
+            const formatProductName = (name: string): string => {
+                if (name.length <= keep * 2 + ellipsis.length) return name;
+                return name.slice(0, keep) + ellipsis + name.slice(-keep);
+            };
+
+            let y = 75;
+            pkg.products
                 .filter(sp => sp.quantity > 0)
-                .map(sp => {
+                .forEach(sp => {
                     const original = order.products.find(p => p.sku === sp.sku);
                     const name = original ? original.name : sp.sku;
-                    return `[${name} x${sp.quantity}]`;
-                })
-                .join("  ");
-            doc.fontSize(8).font("Helvetica").text(productLines, marginBody, 90, {
-                width: pageWidth - 2 * marginBody,
-            });
+                    const shortName = formatProductName(name);
+                    doc.fontSize(8)
+                        .font("Helvetica")
+                        .text(`[${shortName} x${sp.quantity}]`, marginBody, y, {
+                            width: pageWidth - 2 * marginBody,
+                            ellipsis: true,
+                        });
+                    y += 11;
+                });
+        }
+
+        let y = 130;
+        // --- Return Address placeholder ---
+        doc.fontSize(9).font("Helvetica").text("JML CONNECTION INC", margin + 5, y);
+        doc.text("5680 NW 163RD ST", margin + 5, y + 10);
+        doc.text("MIAMI LAKES FL 33014-6134", margin + 5, y + 20);
+        y += 65;
+
+        //Adding extra space if line2 or line3 don't exist
+        if (!order.shipping.address.line2) {
+            y += 11;
+        }
+        if (!order.shipping.address.line3) {
+            y += 11;
         }
 
         // --- Shipping Address ---
-        let y = 180;
         doc.fontSize(9).font("Helvetica").text("SHIP TO:", marginBody, y);
         y += 13;
 
@@ -169,17 +195,29 @@ export class ShippingLabelService {
         y += 11;
 
         // --- Footer ---
-        doc.moveTo(margin, 260).lineTo(pageWidth - margin, 260).stroke();
+        doc.moveTo(5, 270).lineTo(pageWidth, 270).stroke();
 
         doc.fontSize(12)
             .font("Helvetica-Bold")
-            .text("USPS TRACKING #", 0, 270, {
+            .text("USPS TRACKING #", 0, 280, {
                 align: "center",
                 width: pageWidth,
             });
 
-        const bottomLineY = pageHeight - 30;
-        doc.moveTo(margin, bottomLineY).lineTo(pageWidth - margin, bottomLineY).stroke();
+        // Barcode (bottom-right)
+        if (pkg.label?.trackingNumber) {
+            const barcodeBase64 = await generateBarcodeBase64(pkg.label.trackingNumber);
+            doc.image(barcodeBase64, 15, 300, { width: 255, height: 70 });
+            doc.fontSize(11)
+                .font("Helvetica-Bold")
+                .text(`${pkg.label.trackingNumber}`, 15, 380, {
+                    align: "center",
+                    width: 260,
+                });
+        }
+
+        const bottomLineY = pageHeight - 20;
+        doc.moveTo(5, bottomLineY).lineTo(pageWidth, bottomLineY).stroke();
 
         // Order Reference Number (bottom-left)
         doc.fontSize(8)
@@ -188,16 +226,6 @@ export class ShippingLabelService {
                 align: "left",
                 width: pageWidth / 2,
             });
-
-        // Tracking Number (bottom-right)
-        if (pkg.label?.trackingNumber) {
-            doc.fontSize(8)
-                .font("Helvetica")
-                .text(`Track: ${pkg.label.trackingNumber}`, pageWidth / 2, bottomLineY + 5, {
-                    align: "right",
-                    width: pageWidth / 2 - marginBody,
-                });
-        }
     }
 
     static async generate(data: ManualLabelData): Promise<string> {
