@@ -42,12 +42,12 @@ export class AmazonAccountingExporter implements Exporter {
                     order.orderReferenceNumber ?? '', // konga id (placeholder)
                     `[Amz] ${product.name} - ${product.variation}`, // description
                     product.quantityPurchased, // quantity
-                    product.basePrice?.toFixed(2) ?? '', // base price
+                    '', // base price - product.basePrice?.toFixed(2) ?? 
                     idx === 0 ? totalShipping.toFixed(2) : '', // shipping
                     '', // empty-column
                     '', // empty-column
                     '', // refund
-                    product.totalPrice?.toFixed(2) ?? '', // total
+                    '', // total - product.totalPrice?.toFixed(2) ?? 
                     product.sku, // sku
                 ]);
             });

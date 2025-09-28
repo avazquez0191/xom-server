@@ -9,6 +9,7 @@ interface ManualLabelData {
     name: string;
     address1: string;
     address2?: string;
+    address3?: string;
     city: string;
     state: string;
     zip: string;
@@ -267,12 +268,13 @@ export class ShippingLabelService {
 
         // --- Ship To ---
         let y = 180;
-        doc.fontSize(9).font("Helvetica-Bold").text("SHIP TO:", margin + 5, y);
-        y += 10;
-
-        doc.fontSize(11).font("Helvetica").text(data.name.toUpperCase(), margin + 15, y); y += 13;
-        if (data.address2) { doc.text(data.address2.toUpperCase(), margin + 15, y); y += 13; }
-        doc.text(data.address1.toUpperCase(), margin + 15, y); y += 13;
+        if (!data.address3) y += 12;
+        if (!data.address2) y += 12;
+        doc.fontSize(9).font("Helvetica-Bold").text("SHIP TO:", margin + 5, y); y += 10;
+        doc.fontSize(11).font("Helvetica").text(data.name.toUpperCase(), margin + 15, y); y += 12;
+        if (data.address3) { doc.text(data.address3.toUpperCase(), margin + 15, y); y += 12; }
+        if (data.address2) { doc.text(data.address2.toUpperCase(), margin + 15, y); y += 12; }
+        doc.text(data.address1.toUpperCase(), margin + 15, y); y += 12;
         doc.text(`${data.city.toUpperCase()} ${data.state.toUpperCase()} ${data.zip}`, margin + 15, y);
 
         // --- Footer ---

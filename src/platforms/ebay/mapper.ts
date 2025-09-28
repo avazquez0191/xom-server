@@ -65,8 +65,8 @@ export class EbayMapper {
                     variation: raw[EBAY_COLUMNS.product.variation[0]] || '',
                     sku: raw[EBAY_COLUMNS.product.sku[0]],
                     quantityPurchased: toNumber(raw[EBAY_COLUMNS.product.quantityPurchased[0]]),
-                    basePrice: toNumber(raw[EBAY_COLUMNS.product.basePrice[0]]),
-                    totalPrice: toNumber(raw[EBAY_COLUMNS.product.totalPrice[0]]),
+                    basePrice: toOptional(raw[EBAY_COLUMNS.product.basePrice[0]]),
+                    totalPrice: toOptional(raw[EBAY_COLUMNS.product.totalPrice[0]]),
                 },
             ],
             recipient: {

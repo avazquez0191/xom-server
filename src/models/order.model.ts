@@ -42,8 +42,8 @@ export interface OrderProduct {
   variation?: string;
   sku: string;
   quantityPurchased: number;
-  basePrice?: number;
-  totalPrice?: number;
+  basePrice?: string;
+  totalPrice?: string;
   orderItemId?: string; // Amazon-specific
 }
 

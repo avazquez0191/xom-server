@@ -17,8 +17,8 @@ const ProductSchema = new Schema<OrderProduct>(
         sku: { type: String, required: true },
         quantityPurchased: { type: Number, required: true },
         orderItemId: { type: String }, // Amazon-specific
-        basePrice: { type: Number },
-        totalPrice: { type: Number },
+        basePrice: { type: String },
+        totalPrice: { type: String },
     },
     { _id: false }
 );

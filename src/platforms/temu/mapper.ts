@@ -65,8 +65,8 @@ export class TemuMapper {
                 quantityPurchased: toNumber(raw[TEMU_COLUMNS.product.quantityPurchased[0]]),
                 quantityShipped: toNumber(raw[TEMU_COLUMNS.product.quantityShipped[0]]),
                 quantityToShip: toNumber(raw[TEMU_COLUMNS.product.quantityToShip[0]]),
-                basePrice: toNumber(raw[TEMU_COLUMNS.product.basePrice[0]]),
-                totalPrice: toNumber(raw[TEMU_COLUMNS.product.totalPrice[0]]),
+                basePrice: toOptional(raw[TEMU_COLUMNS.product.basePrice[0]]),
+                totalPrice: toOptional(raw[TEMU_COLUMNS.product.totalPrice[0]]),
             }],
             recipient: {
                 name: raw[TEMU_COLUMNS.recipient.name[0]],
