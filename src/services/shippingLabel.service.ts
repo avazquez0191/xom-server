@@ -123,6 +123,13 @@ export class ShippingLabelService {
         // --- Order ID label ---
         doc.fontSize(8).font("Helvetica").text(`Order ID: ${order.orderId}`, 80, 60);
 
+        if (pkg.label?.cost) {
+            doc.fontSize(8).font("Helvetica").text(`$${pkg.label.cost}`, 0, 60, {
+                align: "right",
+                width: pageWidth - marginBody
+            });
+        }
+
         // --- Line below QR/Barcode section ---
         doc.moveTo(5, 70).lineTo(pageWidth, 70).stroke();
 
